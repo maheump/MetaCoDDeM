@@ -24,7 +24,7 @@ tyc = (display.center(2) - ((sz_line - (sz_line*(sz_triangle/50)))/2) * sin(degt
 
 % Display instructions
 drawText(display, [0, (display.T1.circle.size - display.T1.circle.size/4)], 'Veuillez indiquer la direction du mouvement', [255 255 255], 40);
-drawText(display, [0, (display.T1.circle.size - display.T1.circle.size/4)*-1], '(Appuyer sur entrer pour valider votre choix)', [255 255 255], 20);
+drawText(display, [0, (display.T1.circle.size - display.T1.circle.size/4)*-1], '(Appuyer sur ESPACE pour valider votre choix)', [255 255 255], 20);
 
 % Draw marks
 mark_size = 2*(sz_circle/100);

@@ -1,4 +1,4 @@
-function movingDots(display,dots,duration)
+function movingDots_MxM(display,dots,duration)
 % movingDots(display,dots,duration)
 %
 % Animates a field of moving dots based on parameters defined in the 'dots'
@@ -33,7 +33,7 @@ function movingDots(display,dots,duration)
 %    resolution      pixel resolution, set by 'OpenWindow'
 
 % 3/23/09 Written by G.M. Boynton at the University of Washington
- 
+% 6/03/14 Modified by M. Maheu at the Brain and Spine Institute
 
 %Calculate total number of dots across fields
 nDots = sum([dots.nDots]);
@@ -134,6 +134,11 @@ for frameNum=1:nFrames
     %Draw all fields at once
     Screen('DrawDots',display.windowPtr,[pixpos.x(goodDots);pixpos.y(goodDots)], sizes(goodDots), colors(:,goodDots),[0,0],1);
     
+    % Draw circle around the dots
+    sz_circle = angle2pix(display, display.T1.circle.size);
+    circ_coordinates = [display.center(1) - (sz_circle/2), display.center(2) - (sz_circle/2), display.center(1) + (sz_circle/2), display.center(2) + (sz_circle/2)];
+    Screen('FrameArc', display.windowPtr, display.T1.circle.color, circ_coordinates, 0, 360, [display.T1.tick], [display.T1.tick]);
+    
     % Draw marks
     scale = angle2pix(display, dots.apertureSize(1));
     mark_size = 2*(scale/100);
@@ -142,8 +147,6 @@ for frameNum=1:nFrames
     Screen('DrawLine', display.windowPtr, display.T1.circle.color, display.center(1), (display.center(2) - scale/2 - scale/10), display.center(1), (display.center(2) - scale/2 - scale/10 - mark_size), [display.T1.tick]);
     Screen('DrawLine', display.windowPtr, display.T1.circle.color, display.center(1), (display.center(2) + scale/2 + scale/10), display.center(1), (display.center(2) + scale/2 + scale/10 + mark_size), [display.T1.tick]);
 
-    %Draw the fixation point (and call Screen's Flip')
-    drawFixation(display);
+    Screen('Flip',display.windowPtr);
+    
 end
-%clear the screen and leave the fixation point
-drawFixation(display);

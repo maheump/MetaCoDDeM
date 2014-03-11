@@ -195,7 +195,7 @@ try
         end
 
         % Get the response
-        display.T1.line.index = randi(size(display.T1.line.table, 2));     % Column number
+        display.T1.line.index = randi(size(display.T1.line.table, 2));
         display.T1.line.angle = display.T1.line.table(2, display.T1.line.index);
         DATA.Answers.Initial_Direction(Trial_number, 1) = display.T1.line.angle;
         DATA.Answers.Direction(Trial_number, 1) = NaN
