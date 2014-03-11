@@ -1,4 +1,4 @@
-function   display = drawT1Circle(display)
+function   display = drawT1Circle(display,step)
 
 % Calculate sizes in screen-coordinates
 sz_circle = angle2pix(display, display.T1.circle.size);
@@ -30,7 +30,7 @@ drawText(display, [0, (display.T1.circle.size - display.T1.circle.size/4)*-1], '
 
 % Draw marks
 mark_size = 2*(sz_circle/100);
-for i = 0:15:359 % METTRE LE STEP AUTOMATIQUE ICI
+for i = 0:step:359
     mxa = (display.center(1) + (sz_marks_a/2) * cos(degtorad(i)));
     mya = (display.center(2) + (sz_marks_a/2) * sin(degtorad(i)));
     mxb = (display.center(1) + (sz_marks_b/2) * cos(degtorad(i)));

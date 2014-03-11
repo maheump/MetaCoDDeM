@@ -10,7 +10,8 @@
 %%% * Behavior, Emotion and Basal Ganglia team
 %%% * Brain and Spine Institute
 
-%%% This program
+%%% This program was written to study the computational and behavioral determinants
+%%%  
 
 %%% ------------------------------------------------------------------------------------- %%%
 
@@ -67,7 +68,7 @@ dots.center = [0 0];
 dots.color = colors.white;
 dots.size = 5;
 dots.coherence = 0.7;
-dots.duration = 0.750; % seconds
+dots.duration = 1; % seconds
 
 % Set a correponding table between dots angle (classic) and line angle (trigonometric)
 display.T1.line.table_a = [0:DATA.Paradigm.Step:359];
@@ -135,7 +136,7 @@ try
         
         % Display phasis 1 instructions
         if Trial_number == 1
-            drawText(display, [0 2], 'INSTRUCTIONS', colors.white, 40);
+            drawText(display, [0 0], 'INSTRUCTIONS', colors.white, 40);
             % Load instructions image
             Screen('Flip',display.windowPtr);
             while KbCheck; end
@@ -170,7 +171,7 @@ try
         waitTill(2);
 
         % Show the stimulus
-        movingDots_MxM(display, dots, dots.duration);
+        movingDots_MxM(display, dots, dots.duration, DATA.Paradigm.Step);
 
         % Black screen during 100 milisecond
         Screen('FillOval', display.windowPtr, display.bkColor);
@@ -192,7 +193,7 @@ try
                 waitTill(2);
 
                 % Show the stimulus
-                movingDots_MxM(display, dots, dots.duration);
+                movingDots_MxM(display, dots, dots.duration, DATA.Paradigm.Step);
 
                 % Black screen during 100 milisecond
                 Screen('FillOval', display.windowPtr, display.bkColor);
@@ -202,7 +203,7 @@ try
         end
 
         % Get the response
-        display.T1.line.index = randi(size(display.T1.line.table, 2)); % Column number
+        display.T1.line.index = 1 %randi(size(display.T1.line.table, 2)); % Column number
         display.T1.line.angle = display.T1.line.table(2, display.T1.line.index);
         DATA.Answers.Initial_Direction(Trial_number, 1) = display.T1.line.angle;
         DATA.Answers.Direction(Trial_number, 1) = NaN
@@ -211,21 +212,21 @@ try
             % Check the keys press and get the RT
             [keyIsDown, DATA.RTs.Perceptual_brut(Trial_number, 1), keyCode] = KbCheck;
             % Update the arrow according to key press
-            drawT1Circle(display);
+            drawT1Circle(display, DATA.Paradigm.Step);
                        
             if keyIsDown
 
-                    if keyCode(keys.up)
-                        % Increase angle with minus 1 step
-                        display.T1.line.index = display.T1.line.index - 1;
+                    if keyCode(keys.down)
+                        % Increase angle with 1 step
+                        display.T1.line.index = display.T1.line.index + 1;
                         if display.T1.line.index > size(display.T1.line.table, 2)
                             display.T1.line.index = 1;  
                         end
                         display.T1.line.angle = display.T1.line.table(2, display.T1.line.index);  
 
-                    elseif keyCode(keys.down)
-                        % Decrease angle with 1 step
-                        display.T1.line.index = display.T1.line.index + 1;
+                    elseif keyCode(keys.up)
+                        % Decrease angle with minues 1 step
+                        display.T1.line.index = display.T1.line.index - 1;
                         if display.T1.line.index == 0
                             display.T1.line.index = size(display.T1.line.table, 2);
                         end
@@ -395,6 +396,6 @@ save(DATA.Files.Name, 'DATA', 'display', 'dots')
 % Save the summary dataset in a csv file(DataSet, 'File', DATA.Files.Name '.csv', 'Delimiter', ',')
 
 % Clear some useless variables
-clear Block_number and Trial_number and Target_coherence and Phasis_number and ans;
+clear Phasis_number and Trial_number and Target_coherence and ans and i;
 % Close the diary
 diary off;

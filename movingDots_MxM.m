@@ -1,4 +1,4 @@
-function movingDots_MxM(display,dots,duration)
+function movingDots_MxM(display,dots,duration,step)
 % movingDots(display,dots,duration)
 %
 % Animates a field of moving dots based on parameters defined in the 'dots'
@@ -143,7 +143,7 @@ for frameNum=1:nFrames
     
     % Draw marks
     mark_size = 2*(sz_circle/100);
-    for i = 0:15:359
+    for i = 0:step:359
         mxa = (display.center(1) + (sz_marks_a/2) * cos(degtorad(i)));
         mya = (display.center(2) + (sz_marks_a/2) * sin(degtorad(i)));
         mxb = (display.center(1) + (sz_marks_b/2) * cos(degtorad(i)));
@@ -152,5 +152,5 @@ for frameNum=1:nFrames
     end
     
     Screen('Flip',display.windowPtr);
-    
+        
 end
