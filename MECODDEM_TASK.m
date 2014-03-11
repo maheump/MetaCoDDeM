@@ -317,7 +317,7 @@ try
         end
 
         % Display a break screen
-        if Trial_number = (DATA.Paradigm.Trials.Phasis1/2) or Trial_number = (DATA.Paradigm.Trials.Phasis2/2) or Trial_number = (DATA.Paradigm.Trials.Phasis3/2)
+        if Trial_number == (DATA.Paradigm.Trials.Phasis1/2) | Trial_number == (DATA.Paradigm.Trials.Phasis2/2) | Trial_number == (DATA.Paradigm.Trials.Phasis3/2)
             drawText(display, [0 2], 'Faîtes une pause d''une ou deux minutes', colors.white, 40);
             drawText(display, [0 -2], '(Appuyer sur n''importe quelle touche pour continuer)', colors.white, 20);
             Screen('Flip',display.windowPtr);
