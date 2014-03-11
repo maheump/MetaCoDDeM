@@ -1,5 +1,5 @@
 %%% ------------------------------------------------------------------------------------- %%%
-%%%                             SCRIPT FOR THE MECODDEM PROJECT                           %%%
+%%%                             SCRIPT OF THE MECODDEM PROJECT                            %%%
 %%%                 ("MEtacognitive COntrol During DEcision-Making" TASK)                 %%%
 %%% ------------------------------------------------------------------------------------- %%%
 
@@ -48,8 +48,7 @@ keys.left = KbName('LeftArrow');
 keys.space = KbName('space');
 
 % Set paradigm parameters 
-DATA.Paradigm.Blocks = 3;                                                  % 5 blocks of trials
-DATA.Paradigm.Step = 15;                                                   % Step  
+DATA.Paradigm.Step = 15; % Step  
 display.scale = 10;
 
 % Set display parameters
@@ -57,10 +56,10 @@ display.screenNum = max(Screen('Screens'));
 display.bkColor = colors.black;
 display.dist = 60; % cm
 display.width = 30; % cm
-display.skipChecks = 1;                                                    % Avoid Screen's timing checks and verbosity
+display.skipChecks = 1; % Avoid Screen's timing checks and verbosity
 
 % Set up dot parameters
-dots.nDots = round(1.5*(2*pi*((display.scale/2)^2)));
+dots.nDots = round(1.5*(2*pi*((display.scale/2)^2))); % Calculate the number of dots based on the aperture size
 dots.speed = 5;
 dots.lifetime = 12;
 dots.apertureSize = [display.scale display.scale];
@@ -74,7 +73,7 @@ dots.duration = 0.750; % seconds
 display.T1.line.table_a = [0:DATA.Paradigm.Step:359];
 display.T1.line.table_b = [90:-DATA.Paradigm.Step:0];
 display.T1.line.table_c = [360:-DATA.Paradigm.Step:91];
-display.T1.line.table_c(:,1)=[]
+display.T1.line.table_c(:,1) = [];
 display.T1.line.table = [display.T1.line.table_a;display.T1.line.table_b,display.T1.line.table_c];
 
 % Set type I forms parameters
@@ -93,17 +92,17 @@ display.rect1.color = colors.white;
 display.rect2.color = colors.red;
 
 % Set the parameters for the phasis 1 (calibration phasis)
-DATA.Paradigm.Phasis1.Coherences_level = [0.5:.075:1];                     % Define the list of coherence levels
+DATA.Paradigm.Phasis1.Coherences_level = [0.1:.1:1]; % Define the list of coherence levels
 DATA.Paradigm.Phasis1.Coherences_level = transpose(DATA.Paradigm.Phasis1.Coherences_level); % Transform it in a column
-DATA.Paradigm.Phasis1.Coherences_number = 10;                              % Number of trials per coherence level
-DATA.Paradigm.Phasis1.Coherences = repmat(DATA.Paradigm.Phasis1.Coherences_level, DATA.Paradigm.Phasis1.Coherences_number, 1);  % Repeat each coherence level a certain number of time
+DATA.Paradigm.Phasis1.Coherences_number = 10; % Number of trials per coherence level
+DATA.Paradigm.Phasis1.Coherences = repmat(DATA.Paradigm.Phasis1.Coherences_level, DATA.Paradigm.Phasis1.Coherences_number, 1); % Repeat each coherence level a certain number of time
 DATA.Paradigm.Phasis1.Coherences = Shuffle(DATA.Paradigm.Phasis1.Coherences); % Shuffle it
-DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1);  % The phasis 1 total number of trials is the size of this coherence list
+DATA.Paradigm.Phasis1.Trials = 1%size(DATA.Paradigm.Phasis1.Coherences, 1); % The phasis 1 total number of trials is the size of this coherence list
 
 % Set the parameters for the phasis 2 (evidence accumulation phasis)
 DATA.Paradigm.Phasis2.Viewing_number = 2;
-DATA.Paradigm.Phasis2.Facility_levels = [0,.05,.10,.15];                   % Decreasing difficulty index
-DATA.Paradigm.Phasis2.Accuracies_number = 5;                               % Number of trials per accuracy level
+DATA.Paradigm.Phasis2.Facility_levels = [0,.05,.10,.15]; % Decreasing difficulty index
+DATA.Paradigm.Phasis2.Accuracies_number = 5; % Number of trials per accuracy level
 DATA.Paradigm.Phasis2.Accuracies_levels = [0.5:.05:(1 - ((DATA.Paradigm.Phasis2.Viewing_number - 1)*DATA.Paradigm.Phasis2.Facility_levels(end)))];
 DATA.Paradigm.Phasis2.Accuracies = repmat(DATA.Paradigm.Phasis2.Accuracies_levels, 1, size(DATA.Paradigm.Phasis2.Facility_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number);
 DATA.Paradigm.Phasis2.Accuracies = transpose(DATA.Paradigm.Phasis2.Accuracies);
@@ -114,7 +113,7 @@ end
 DATA.Paradigm.Phasis2.Facilities = DATA.Paradigm.Phasis2.Facilities( : );
 DATA.Paradigm.Phasis2.Facilities = Shuffle(DATA.Paradigm.Phasis2.Facilities);
 DATA.Paradigm.Phasis2.Design = [DATA.Paradigm.Phasis2.Accuracies DATA.Paradigm.Phasis2.Facilities (DATA.Paradigm.Phasis2.Accuracies + DATA.Paradigm.Phasis2.Facilities)];
-DATA.Paradigm.Phasis2.Trials = 0 %size(DATA.Paradigm.Phasis2.Design, 1);
+DATA.Paradigm.Phasis2.Trials = 0 % size(DATA.Paradigm.Phasis2.Design, 1);
 
 % Set the parameters for the phasis 3 (information seeking phasis)
 DATA.Paradigm.Phasis3.Trials = 0;
@@ -203,7 +202,7 @@ try
         end
 
         % Get the response
-        display.T1.line.index = randi(size(display.T1.line.table, 2));     % Column number
+        display.T1.line.index = randi(size(display.T1.line.table, 2)); % Column number
         display.T1.line.angle = display.T1.line.table(2, display.T1.line.index);
         DATA.Answers.Initial_Direction(Trial_number, 1) = display.T1.line.angle;
         DATA.Answers.Direction(Trial_number, 1) = NaN
@@ -217,16 +216,16 @@ try
             if keyIsDown
 
                     if keyCode(keys.up)
-                        % Increase angle with 1 step
-                        display.T1.line.index = display.T1.line.index + 1;
+                        % Increase angle with minus 1 step
+                        display.T1.line.index = display.T1.line.index - 1;
                         if display.T1.line.index > size(display.T1.line.table, 2)
                             display.T1.line.index = 1;  
                         end
                         display.T1.line.angle = display.T1.line.table(2, display.T1.line.index);  
 
                     elseif keyCode(keys.down)
-                        % Decrease angle with minus 1 step
-                        display.T1.line.index = display.T1.line.index - 1;
+                        % Decrease angle with 1 step
+                        display.T1.line.index = display.T1.line.index + 1;
                         if display.T1.line.index == 0
                             display.T1.line.index = size(display.T1.line.table, 2);
                         end
@@ -330,7 +329,7 @@ try
             if Trial_number == DATA.Paradigm.Phasis1.Trials
                 % Make a coherence x performance table
                 DATA.Fit.Psychometric.Coherence = unique(DATA.Paradigm.Phasis1.Coherences);
-                DATA.Fit.Psychometric.Performance = grpstats(DATA.Answers.Correction, DATA.Paradigm.Phasis1.Coherences);
+                DATA.Fit.Psychometric.Performance = grpstats(DATA.Answers.Correction, DATA.Paradigm.Phasis1.Coherences(DATA.Paradigm.Phasis1.Trials,:));
                 % Set the psychometric function
                 DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));
                 % Fit it
@@ -349,7 +348,8 @@ try
                 plot(DATA.Fit.Psychometric.Theoretical_x, DATA.Fit.Psychometric.Theoretical_y, 'r-.');
                 hold on
                 % Draw chance level
-                plot(DATA.Fit.Psychometric.Theoretical_x, (DATA.Paradigm.Error/360), 'c');
+                DATA.Fit.Psychometric.Chance = 1/(360/DATA.Paradigm.Step)
+                plot(DATA.Fit.Psychometric.Theoretical_x, DATA.Fit.Psychometric.Chance, 'c-');
                 % Set legend, axis and labels
                 legend('Data', 'Fit', 'Theoretical', 'Chance', 'location', 'northwest');
                 axis([0 1 0 1]);

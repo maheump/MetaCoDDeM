@@ -136,17 +136,21 @@ for frameNum=1:nFrames
     
     % Draw circle around the dots
     sz_circle = angle2pix(display, display.T1.circle.size);
+    sz_marks_a = angle2pix(display, display.T1.line.size + (display.T1.line.size/20));
+    sz_marks_b = angle2pix(display, display.T1.line.size + (display.T1.line.size/10));
     circ_coordinates = [display.center(1) - (sz_circle/2), display.center(2) - (sz_circle/2), display.center(1) + (sz_circle/2), display.center(2) + (sz_circle/2)];
     Screen('FrameArc', display.windowPtr, display.T1.circle.color, circ_coordinates, 0, 360, [display.T1.tick], [display.T1.tick]);
     
     % Draw marks
-    scale = angle2pix(display, dots.apertureSize(1));
-    mark_size = 2*(scale/100);
-    Screen('DrawLine', display.windowPtr, display.T1.circle.color, (display.center(1) - scale/2 - scale/10), display.center(2), (display.center(1) - scale/2 - scale/10 - mark_size), display.center(2), [display.T1.tick]);
-    Screen('DrawLine', display.windowPtr, display.T1.circle.color, (display.center(1) + scale/2 + scale/10), display.center(2), (display.center(1) + scale/2 + scale/10 + mark_size), display.center(2), [display.T1.tick]);
-    Screen('DrawLine', display.windowPtr, display.T1.circle.color, display.center(1), (display.center(2) - scale/2 - scale/10), display.center(1), (display.center(2) - scale/2 - scale/10 - mark_size), [display.T1.tick]);
-    Screen('DrawLine', display.windowPtr, display.T1.circle.color, display.center(1), (display.center(2) + scale/2 + scale/10), display.center(1), (display.center(2) + scale/2 + scale/10 + mark_size), [display.T1.tick]);
-
+    mark_size = 2*(sz_circle/100);
+    for i = 0:15:359
+        mxa = (display.center(1) + (sz_marks_a/2) * cos(degtorad(i)));
+        mya = (display.center(2) + (sz_marks_a/2) * sin(degtorad(i)));
+        mxb = (display.center(1) + (sz_marks_b/2) * cos(degtorad(i)));
+        myb = (display.center(2) + (sz_marks_b/2) * sin(degtorad(i)));
+        Screen('DrawLine', display.windowPtr, display.T1.circle.color, mxa, mya, mxb, myb);
+    end
+    
     Screen('Flip',display.windowPtr);
     
 end
