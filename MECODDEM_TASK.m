@@ -1,15 +1,18 @@
-%% SCRIPT FOR THE MECODDEM PROJECT ("MEtacognitive COntrol During DEcision-Making" TASK)
+%%% ------------------------------------------------------------------------------------- %%%
+%%%                             SCRIPT FOR THE MECODDEM PROJECT                           %%%
+%%%                 ("MEtacognitive COntrol During DEcision-Making" TASK)                 %%%
+%%% ------------------------------------------------------------------------------------- %%%
 
-% Author: Maxime Maheu
-% Copyright (C) 2014
+%%% Author: Maxime Maheu
+%%% Copyright (C) 2014
 
-% * M1 Cogmaster
-% * Behavior, Emotion and Basal Ganglia team
-% * Brain and Spine Institute
+%%% * M1 Cogmaster
+%%% * Behavior, Emotion and Basal Ganglia team
+%%% * Brain and Spine Institute
 
-% This program
+%%% This program
 
-% ----------------------------------------------------------------------- %
+%%% ------------------------------------------------------------------------------------- %%%
 
 %% Clear the workspace, set the diary and the recording file
 
@@ -99,25 +102,25 @@ DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1);  % The
 
 % Set the parameters for the phasis 2 (evidence accumulation phasis)
 DATA.Paradigm.Phasis2.Viewing_number = 2;
-DATA.Paradigm.Phasis2.Facility_levels = [0,.5,.10,.15];                    % Decreasing difficulty index
+DATA.Paradigm.Phasis2.Facility_levels = [0,.05,.10,.15];                   % Decreasing difficulty index
 DATA.Paradigm.Phasis2.Accuracies_number = 5;                               % Number of trials per accuracy level
 DATA.Paradigm.Phasis2.Accuracies_levels = [0.5:.05:(1 - ((DATA.Paradigm.Phasis2.Viewing_number - 1)*DATA.Paradigm.Phasis2.Facility_levels(end)))];
 DATA.Paradigm.Phasis2.Accuracies = repmat(DATA.Paradigm.Phasis2.Accuracies_levels, 1, size(DATA.Paradigm.Phasis2.Facility_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number);
 DATA.Paradigm.Phasis2.Accuracies = transpose(DATA.Paradigm.Phasis2.Accuracies);
-ATA.Paradigm.Phasis2.Accuracies = Shuffle(DATA.Paradigm.Phasis2.Accuracies);
+DATA.Paradigm.Phasis2.Accuracies = Shuffle(DATA.Paradigm.Phasis2.Accuracies);
 for i = 1:1:size(DATA.Paradigm.Phasis2.Facility_levels, 2)
     DATA.Paradigm.Phasis2.Facilities(:,i) = [repmat(DATA.Paradigm.Phasis2.Facility_levels(i), 1, size(DATA.Paradigm.Phasis2.Accuracies_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number)];
 end
 DATA.Paradigm.Phasis2.Facilities = DATA.Paradigm.Phasis2.Facilities( : );
 DATA.Paradigm.Phasis2.Facilities = Shuffle(DATA.Paradigm.Phasis2.Facilities);
 DATA.Paradigm.Phasis2.Design = [DATA.Paradigm.Phasis2.Accuracies DATA.Paradigm.Phasis2.Facilities (DATA.Paradigm.Phasis2.Accuracies + DATA.Paradigm.Phasis2.Facilities)];
-DATA.Paradigm.Phasis2.Trials = size(DATA.Paradigm.Phasis2.Design, 1);
+DATA.Paradigm.Phasis2.Trials = 0 %size(DATA.Paradigm.Phasis2.Design, 1);
 
 % Set the parameters for the phasis 3 (information seeking phasis)
 DATA.Paradigm.Phasis3.Trials = 0;
 
 % Get the total number of trials
-DATA.Paradigm.Trials = 8  %DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials;
+DATA.Paradigm.Trials = DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials;
 
 try
     %% Start the trial
@@ -157,7 +160,10 @@ try
         if Phasis_number == 1
             dots.coherence = DATA.Paradigm.Phasis1.Coherences(Trial_number);
         elseif Phasis_number == 2
-            dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number, 1);
+            % Get a coherence level according to a given performance
+            syms Target_coherence
+            DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) == DATA.Paradigm.Phasis2.Design(Trial_number - DATA.Paradigm.Phasis1.Trials, 1)));
+            dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials);
         end
         
         % Draw fixation cross during 2 seconds
@@ -173,19 +179,15 @@ try
         waitTill(.1);
 
         if Phasis_number == 2
-            
-            % Créér une liste avec les niveaux de cohérence correpodondant
-            %%%%%%%%%%%%%%%%%%%%%%%%
-            
-            % Get a coherence level according to a given performance (% FOR REV = 2)
-            DATA.Paradigm.Phasis2.Wanted_performance = DATA.Paradigm.Phasis2.Accuracies(Trial_number - DATA.Paradigm.Phasis1.Trials);
-            syms Target_coherence
-            DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials) = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) == DATA.Paradigm.Phasis2.Wanted_performance));
-            
+            % For each review
             for Review = 2:1:DATA.Paradigm.Phasis2.Viewing_number
-                dots.coherence = DATA.Paradigm.Phasis1.Coherences(Trial_number, Review);
-                DATA.Paradigm.Coherence(Trial_number, Review) = dots.coherence;
-
+                % Get a coherence level according to a given performance
+                syms Target_coherence
+                DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) == DATA.Paradigm.Phasis2.Design(Trial_number - DATA.Paradigm.Phasis1.Trials, 1)));
+                dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials);
+                % Save the difference between the first sample coherence and the second sample one
+                DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 2) = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) - DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
+                
                 % Draw fixation cross during 2 seconds
                 display = drawFixationCross(display);
                 waitTill(2);
@@ -314,9 +316,14 @@ try
         end
         end
 
-        %if Trial_number = (DATA.Paradigm.Trials.Phasis1/2) or Trial_number = (DATA.Paradigm.Trials.Phasis2/2) or Trial_number = (DATA.Paradigm.Trials.Phasis3/2)
-            % Display a break screen
-        %end
+        % Display a break screen
+        if Trial_number = (DATA.Paradigm.Trials.Phasis1/2) or Trial_number = (DATA.Paradigm.Trials.Phasis2/2) or Trial_number = (DATA.Paradigm.Trials.Phasis3/2)
+            drawText(display, [0 2], 'Faîtes une pause d''une ou deux minutes', colors.white, 40);
+            drawText(display, [0 -2], '(Appuyer sur n''importe quelle touche pour continuer)', colors.white, 20);
+            Screen('Flip',display.windowPtr);
+            while KbCheck; end
+            KbWait;
+        end
 
         %% Fitting the psychometric curve
         if Phasis_number == 1
@@ -349,7 +356,7 @@ try
                 xlabel('Motion coherence'); 
                 ylabel('Perceptual performance');
                 % Sauver le graphique
-                % savefig('Plot1.fig')
+                % savefig(DATA.Files.Name, '.fig')
 
                 % Get a coherence level according to a given performance
                 DATA.Fit.Psychometric.Wanted_performance = .5;
