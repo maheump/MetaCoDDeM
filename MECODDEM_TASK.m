@@ -67,7 +67,7 @@ dots.size = 5;
 dots.coherence = 0.7;
 dots.duration = 0.750; % seconds
 
-%
+% Set a correponding table between dots angle (classic) and line angle (trigonometric)
 display.T1.line.table_a = [0:DATA.Paradigm.Step:359];
 display.T1.line.table_b = [90:-DATA.Paradigm.Step:0];
 display.T1.line.table_c = [360:-DATA.Paradigm.Step:91];
@@ -90,22 +90,28 @@ display.rect1.color = colors.white;
 display.rect2.color = colors.red;
 
 % Set the parameters for the phasis 1 (calibration phasis)
-DATA.Paradigm.Phasis1.Coherences_level = [0.5:.075:1];
-DATA.Paradigm.Phasis1.Coherences_level = transpose(DATA.Paradigm.Phasis1.Coherences_level);
+DATA.Paradigm.Phasis1.Coherences_level = [0.5:.075:1];                     % Define the list of coherence levels
+DATA.Paradigm.Phasis1.Coherences_level = transpose(DATA.Paradigm.Phasis1.Coherences_level); % Transform it in a column
 DATA.Paradigm.Phasis1.Coherences_number = 10;                              % Number of trials per coherence level
-DATA.Paradigm.Phasis1.Coherences = repmat(DATA.Paradigm.Phasis1.Coherences_level, DATA.Paradigm.Phasis1.Coherences_number, 1);
-DATA.Paradigm.Phasis1.Coherences = Shuffle(DATA.Paradigm.Phasis1.Coherences);
-DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1);
+DATA.Paradigm.Phasis1.Coherences = repmat(DATA.Paradigm.Phasis1.Coherences_level, DATA.Paradigm.Phasis1.Coherences_number, 1);  % Repeat each coherence level a certain number of time
+DATA.Paradigm.Phasis1.Coherences = Shuffle(DATA.Paradigm.Phasis1.Coherences); % Shuffle it
+DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1);  % The phasis 1 total number of trials is the size of this coherence list
 
 % Set the parameters for the phasis 2 (evidence accumulation phasis)
 DATA.Paradigm.Phasis2.Viewing_number = 2;
 DATA.Paradigm.Phasis2.Facility_levels = [0,.5,.10,.15];                    % Decreasing difficulty index
-DATA.Paradigm.Phasis2.Accuracies_levels = [0.1:.05:(1 - ((DATA.Paradigm.Phasis2.Viewing_number*DATA.Paradigm.Phasis2.Facility_levels(end))/100))];
-DATA.Paradigm.Phasis2.Accuracies_levels = transpose(DATA.Paradigm.Phasis2.Accuracies_levels);
-DATA.Paradigm.Phasis2.Accuracies = repmat(DATA.Paradigm.Phasis2.Accuracies_levels, (size(DATA.Paradigm.Phasis2.Facility_levels, 2)*(DATA.Paradigm.Phasis2.Viewing_number - 1)), 1);
-DATA.Paradigm.Phasis2.Accuracies = Shuffle(DATA.Paradigm.Phasis2.Accuracies);
-DATA.Paradigm.Phasis2.Accuracies_number = 10;                              % Number of trials per accuracy level
-DATA.Paradigm.Phasis2.Trials = size(DATA.Paradigm.Phasis2.Accuracies, 1)*size(DATA.Paradigm.Phasis2.Facility_levels, 1);
+DATA.Paradigm.Phasis2.Accuracies_number = 5;                               % Number of trials per accuracy level
+DATA.Paradigm.Phasis2.Accuracies_levels = [0.5:.05:(1 - ((DATA.Paradigm.Phasis2.Viewing_number - 1)*DATA.Paradigm.Phasis2.Facility_levels(end)))];
+DATA.Paradigm.Phasis2.Accuracies = repmat(DATA.Paradigm.Phasis2.Accuracies_levels, 1, size(DATA.Paradigm.Phasis2.Facility_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number);
+DATA.Paradigm.Phasis2.Accuracies = transpose(DATA.Paradigm.Phasis2.Accuracies);
+ATA.Paradigm.Phasis2.Accuracies = Shuffle(DATA.Paradigm.Phasis2.Accuracies);
+for i = 1:1:size(DATA.Paradigm.Phasis2.Facility_levels, 2)
+    DATA.Paradigm.Phasis2.Facilities(:,i) = [repmat(DATA.Paradigm.Phasis2.Facility_levels(i), 1, size(DATA.Paradigm.Phasis2.Accuracies_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number)];
+end
+DATA.Paradigm.Phasis2.Facilities = DATA.Paradigm.Phasis2.Facilities( : );
+DATA.Paradigm.Phasis2.Facilities = Shuffle(DATA.Paradigm.Phasis2.Facilities);
+DATA.Paradigm.Phasis2.Design = [DATA.Paradigm.Phasis2.Accuracies DATA.Paradigm.Phasis2.Facilities (DATA.Paradigm.Phasis2.Accuracies + DATA.Paradigm.Phasis2.Facilities)];
+DATA.Paradigm.Phasis2.Trials = size(DATA.Paradigm.Phasis2.Design, 1);
 
 % Set the parameters for the phasis 3 (information seeking phasis)
 DATA.Paradigm.Phasis3.Trials = 0;
