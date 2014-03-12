@@ -1,6 +1,6 @@
 %%% ------------------------------------------------------------------------------------- %%%
 %%%                             SCRIPT OF THE MECODDEM PROJECT                            %%%
-%%%                 ("MEtacognitive COntrol During DEcision-Making" TASK)                 %%%
+%%%                 ("MEtacognitive COntrol During DEcision-Making" task)                 %%%
 %%% ------------------------------------------------------------------------------------- %%%
 
 %%% Author: Maxime Maheu
@@ -10,8 +10,8 @@
 %%% * Behavior, Emotion and Basal Ganglia team
 %%% * Brain and Spine Institute
 
-%%% This program was written to study the computational and behavioral determinants
-%%%  
+%%% This program was written to study the computational and behavioral determinants of
+%%% metacognitive control during perceptual decision making (with multi-sampling)
 
 %%% ------------------------------------------------------------------------------------- %%%
 
@@ -93,12 +93,13 @@ display.rect1.color = colors.white;
 display.rect2.color = colors.red;
 
 % Set the parameters for the phasis 1 (calibration phasis)
-DATA.Paradigm.Phasis1.Coherences_level = [0.1:.1:1]; % Define the list of coherence levels
+DATA.Paradigm.Phasis1.Coherences_margin = .2
+DATA.Paradigm.Phasis1.Coherences_level = [0.1:DATA.Paradigm.Phasis1.Coherences_margin:(1 - DATA.Paradigm.Phasis1.Coherences_margin)]; % Define the list of coherence levels
 DATA.Paradigm.Phasis1.Coherences_level = transpose(DATA.Paradigm.Phasis1.Coherences_level); % Transform it in a column
-DATA.Paradigm.Phasis1.Coherences_number = 10; % Number of trials per coherence level
+DATA.Paradigm.Phasis1.Coherences_number = 20; % Number of trials per coherence level
 DATA.Paradigm.Phasis1.Coherences = repmat(DATA.Paradigm.Phasis1.Coherences_level, DATA.Paradigm.Phasis1.Coherences_number, 1); % Repeat each coherence level a certain number of time
 DATA.Paradigm.Phasis1.Coherences = Shuffle(DATA.Paradigm.Phasis1.Coherences); % Shuffle it
-DATA.Paradigm.Phasis1.Trials = 1%size(DATA.Paradigm.Phasis1.Coherences, 1); % The phasis 1 total number of trials is the size of this coherence list
+DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1); % The phasis 1 total number of trials is the size of this coherence list
 
 % Set the parameters for the phasis 2 (evidence accumulation phasis)
 DATA.Paradigm.Phasis2.Viewing_number = 2;
@@ -200,6 +201,10 @@ try
                 Screen('Flip',display.windowPtr);
                 waitTill(.1);
             end
+        end
+        
+        if Phasis_number == 3
+            % Display choice
         end
 
         % Get the response
@@ -330,12 +335,18 @@ try
             if Trial_number == DATA.Paradigm.Phasis1.Trials
                 % Make a coherence x performance table
                 DATA.Fit.Psychometric.Coherence = unique(DATA.Paradigm.Phasis1.Coherences);
-                DATA.Fit.Psychometric.Performance = grpstats(DATA.Answers.Correction, DATA.Paradigm.Phasis1.Coherences(DATA.Paradigm.Phasis1.Trials,:));
+                DATA.Fit.Psychometric.Performance = grpstats(DATA.Answers.Correction, DATA.Paradigm.Phasis1.Coherences);
+                % Insert born values (chance and 100% accuracy)
+                DATA.Fit.Psychometric.Chance = 1/(360/DATA.Paradigm.Step);
+                DATA.Fit.Psychometric.Coherence = [0; DATA.Fit.Psychometric.Coherence];
+                DATA.Fit.Psychometric.Performance = [DATA.Fit.Psychometric.Chance; DATA.Fit.Psychometric.Performance];
+                DATA.Fit.Psychometric.Coherence = [DATA.Fit.Psychometric.Coherence; 1];
+                DATA.Fit.Psychometric.Performance = [DATA.Fit.Psychometric.Performance; 1];
                 % Set the psychometric function
                 DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));
                 % Fit it
                 DATA.Fit.Psychometric.SigFit = nlinfit(DATA.Fit.Psychometric.Coherence, DATA.Fit.Psychometric.Performance, DATA.Fit.Psychometric.SigFunc, [1 1]);
-
+                % Draw the figure
                 figure(1)
                 % Plot empirical points
                 plot(DATA.Fit.Psychometric.Coherence, DATA.Fit.Psychometric.Performance, '*');
@@ -349,7 +360,6 @@ try
                 plot(DATA.Fit.Psychometric.Theoretical_x, DATA.Fit.Psychometric.Theoretical_y, 'r-.');
                 hold on
                 % Draw chance level
-                DATA.Fit.Psychometric.Chance = 1/(360/DATA.Paradigm.Step)
                 plot(DATA.Fit.Psychometric.Theoretical_x, DATA.Fit.Psychometric.Chance, 'c-');
                 % Set legend, axis and labels
                 legend('Data', 'Fit', 'Theoretical', 'Chance', 'location', 'northwest');
@@ -357,12 +367,10 @@ try
                 xlabel('Motion coherence'); 
                 ylabel('Perceptual performance');
                 % Sauver le graphique
-                % savefig(DATA.Files.Name, '.fig')
-
+                %%%%%%%%%%%%%%% savefig(DATA.Files.Name, '.fig')
                 % Get a coherence level according to a given performance
-                DATA.Fit.Psychometric.Wanted_performance = .5;
                 syms Target_coherence
-                DATA.Fit.Psychometric.C50 = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) == DATA.Fit.Psychometric.Wanted_performance));
+                DATA.Fit.Psychometric.C50 = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) == .5));
             end
         end
         
