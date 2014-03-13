@@ -19,11 +19,11 @@
 
 % Clear the workspace and the command window, then set the diary
 clc;
-clear all;
+%clear all;
 diary 'MeCoDDeM_project.txt';
 
 % DATA.Subject.Number = randi(1000,1,1);
-% DATA.Subject.Group = upper(input('Subject group? (HS/OCD) ', 's'));
+% DATA.Subject.Group = upper(input('Subject group? (HS/OCD/DLGG) ', 's'));
 % DATA.Subject.Age = upper(input('Subject age? ', 's'));
 % DATA.Subject.Initials = upper(input('Subject initials? ', 's'));
 % DATA.Subject.Handedness = upper(input('Subject handedness? (L/R) ', 's'));
@@ -88,18 +88,18 @@ display.T1.triangle.color = colors.red;
 
 % Set type II forms parameters
 display.T2.tick = display.scale/2;
-display.rect1.size = display.scale;
-display.rect1.color = colors.white;
-display.rect2.color = colors.red;
+display.T2.rect1.size = display.scale;
+display.T2.rect1.color = colors.white;
+display.T2.rect2.color = colors.red;
 
 % Set the parameters for the phasis 1 (calibration phasis)
 DATA.Paradigm.Phasis1.Coherences_margin = .2
 DATA.Paradigm.Phasis1.Coherences_level = [0.1:DATA.Paradigm.Phasis1.Coherences_margin:(1 - DATA.Paradigm.Phasis1.Coherences_margin)]; % Define the list of coherence levels
-DATA.Paradigm.Phasis1.Coherences_level = transpose(DATA.Paradigm.Phasis1.Coherences_level); % Transform it in a column
+DATA.Paradigm.Phasis1.Coherences_level = transpose(DATA.Paradigm.Phasis1.Coherences_level); % Transform it into a column
 DATA.Paradigm.Phasis1.Coherences_number = 20; % Number of trials per coherence level
 DATA.Paradigm.Phasis1.Coherences = repmat(DATA.Paradigm.Phasis1.Coherences_level, DATA.Paradigm.Phasis1.Coherences_number, 1); % Repeat each coherence level a certain number of time
 DATA.Paradigm.Phasis1.Coherences = Shuffle(DATA.Paradigm.Phasis1.Coherences); % Shuffle it
-DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1); % The phasis 1 total number of trials is the size of this coherence list
+DATA.Paradigm.Phasis1.Trials = 1%size(DATA.Paradigm.Phasis1.Coherences, 1); % The phasis 1 total number of trials is the size of this coherence list
 
 % Set the parameters for the phasis 2 (evidence accumulation phasis)
 DATA.Paradigm.Phasis2.Viewing_number = 2;
@@ -115,9 +115,10 @@ end
 DATA.Paradigm.Phasis2.Facilities = DATA.Paradigm.Phasis2.Facilities( : );
 DATA.Paradigm.Phasis2.Facilities = Shuffle(DATA.Paradigm.Phasis2.Facilities);
 DATA.Paradigm.Phasis2.Design = [DATA.Paradigm.Phasis2.Accuracies DATA.Paradigm.Phasis2.Facilities (DATA.Paradigm.Phasis2.Accuracies + DATA.Paradigm.Phasis2.Facilities)];
-DATA.Paradigm.Phasis2.Trials = 0 % size(DATA.Paradigm.Phasis2.Design, 1);
+DATA.Paradigm.Phasis2.Trials = 3%size(DATA.Paradigm.Phasis2.Design, 1);
 
 % Set the parameters for the phasis 3 (information seeking phasis)
+DATA.Paradigm.Phasis3.Gains = [100,-200;80,-80;70,-70;60,-60;50,-50];
 DATA.Paradigm.Phasis3.Trials = 0;
 
 % Get the total number of trials
@@ -160,10 +161,14 @@ try
         % Define dots motion coherence
         if Phasis_number == 1
             dots.coherence = DATA.Paradigm.Phasis1.Coherences(Trial_number);
+        % Get a coherence level according to a given performance
         elseif Phasis_number == 2
-            % Get a coherence level according to a given performance
             syms Target_coherence
             DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) == DATA.Paradigm.Phasis2.Design(Trial_number - DATA.Paradigm.Phasis1.Trials, 1)));
+            dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials);
+        elseif Phasis_number == 3
+            syms Target_coherence
+            DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) == DATA.Paradigm.Phasis2.Design(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1)));
             dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials);
         end
         
@@ -203,8 +208,40 @@ try
             end
         end
         
-        if Phasis_number == 3
+        if Phasis_number == 1%3
             % Display choice
+            choice = 1;
+            drawT3Info(display, choice, DATA.Paradigm.Phasis3.Gains);
+            while true
+                % Check the keys press and get the RT
+                [keyIsDown, DATA.RTs.Phasis3.Choice(Trial_number, 1), keyCode] = KbCheck;
+                % Update the arrow according to key press
+                drawT3Info(display, choice, DATA.Paradigm.Phasis3.Gains);
+
+                if keyIsDown
+
+                        if keyCode(keys.up)
+                            % 
+                            choice = 1; 
+
+                        elseif keyCode(keys.down)
+                            %
+                            choice = 2;
+                            
+                        elseif keyCode(keys.left)
+                            choice = 3;
+                            
+                        elseif keyCode(keys.right)
+                            choice = 5;
+
+                        elseif keyCode(keys.space)
+                            % Get
+                            display.T3.Answers.Information = choice; % à modifier 
+                            waitTill(.1);
+                            break;
+                        end
+                end
+            end
         end
 
         % Get the response
@@ -230,7 +267,7 @@ try
                         display.T1.line.angle = display.T1.line.table(2, display.T1.line.index);  
 
                     elseif keyCode(keys.up)
-                        % Decrease angle with minues 1 step
+                        % Decrease angle with minus 1 step
                         display.T1.line.index = display.T1.line.index - 1;
                         if display.T1.line.index == 0
                             display.T1.line.index = size(display.T1.line.table, 2);
@@ -238,6 +275,7 @@ try
                         display.T1.line.angle = display.T1.line.table(2, display.T1.line.index);
                         
                     elseif keyCode(keys.space)
+                        % Get
                         DATA.Answers.Direction(Trial_number, 1) = display.T1.line.table(1, display.T1.line.index);
                         break;
                     end
@@ -269,8 +307,8 @@ try
 
         %% CONFIDENCE
 
-        display.rect2.size = randi([-display.rect1.size, display.rect1.size]);            
-        DATA.Answers.Initial_Confidence(Trial_number, 1) = round(((display.rect2.size + display.rect1.size) / (2 * display.rect1.size)) * 100);
+        display.T2.rect2.size = randi([-display.T2.rect1.size, display.T2.rect1.size]);            
+        DATA.Answers.Initial_Confidence(Trial_number, 1) = round(((display.T2.rect2.size + display.T2.rect1.size) / (2 * display.T2.rect1.size)) * 100);
         DATA.Answers.Confidence(Trial_number, 1) = NaN;
 
         while true
@@ -279,13 +317,13 @@ try
             
             % Display instructions
             if Phasis_number == 1
-                drawText(display, [0, (display.rect1.size - display.rect1.size/4)], 'Veuillez donner votre niveau de confiance dans votre réponse', [255 255 255], 40);
+                drawText(display, [0, (display.T2.rect1.size - display.T2.rect1.size/4)], 'Veuillez donner votre niveau de confiance dans votre réponse', [255 255 255], 40);
             elseif Phasis_number == 2 % à modifier
-                drawText(display, [0, (display.rect1.size - display.rect1.size/4)], 'Veuillez donner votre niveau de confiance dans votre réponse', [255 255 255], 40);
+                drawText(display, [0, (display.T2.rect1.size - display.T2.rect1.size/4)], 'Veuillez donner votre niveau de confiance dans votre réponse', [255 255 255], 40);
             elseif Phasis_number == 3 % à modifier
-                drawText(display, [0, (display.rect1.size - display.rect1.size/4)], 'Veuillez donner votre niveau de confiance si vous aviez dû répondre', [255 255 255], 40);
+                drawText(display, [0, (display.T2.rect1.size - display.T2.rect1.size/4)], 'Veuillez donner votre niveau de confiance si vous aviez dû répondre', [255 255 255], 40);
             end
-            drawText(display, [0, (display.rect1.size - display.rect1.size/4)*-1], '(Appuyer sur ESPACE pour valider votre choix)', [255 255 255], 20);
+            drawText(display, [0, (display.T2.rect1.size - display.T2.rect1.size/4)*-1], '(Appuyer sur ESPACE pour valider votre choix)', [255 255 255], 20);
             
             % Update the red rectangle according to key press
             drawT2Rect(display);
@@ -293,21 +331,21 @@ try
 
                     if keyCode(keys.right)
                         % Increase confidence score with +1%
-                        display.rect2.size = display.rect2.size + ((2*display.rect1.size)/100);
-                        if display.rect2.size > display.rect1.size
-                        display.rect2.size = display.rect1.size;
+                        display.T2.rect2.size = display.T2.rect2.size + ((2*display.T2.rect1.size)/100);
+                        if display.T2.rect2.size > display.T2.rect1.size
+                        display.T2.rect2.size = display.T2.rect1.size;
                         end
 
                     elseif keyCode(keys.left)
                         % Decrease confidence score with -1%
-                        display.rect2.size = display.rect2.size - ((2*display.rect1.size)/100);
-                        if display.rect2.size < display.rect1.size*-1
-                        display.rect2.size = display.rect1.size*-1;
+                        display.T2.rect2.size = display.T2.rect2.size - ((2*display.T2.rect1.size)/100);
+                        if display.T2.rect2.size < display.T2.rect1.size*-1
+                        display.T2.rect2.size = display.T2.rect1.size*-1;
                         end
 
                     elseif keyCode(keys.space)
                         % Get the confidence score on a 100 scale
-                        DATA.Answers.Confidence(Trial_number, 1) = round(((display.rect2.size + display.rect1.size) / (2 * display.rect1.size)) * 100);
+                        DATA.Answers.Confidence(Trial_number, 1) = round(((display.T2.rect2.size + display.T2.rect1.size) / (2 * display.T2.rect1.size)) * 100);
                         waitTill(.1);
                         break;
                     end
@@ -396,6 +434,7 @@ rethrow(error_message);
 end
 
 %% Fitting the OPIS model (Optimal Proactive Information Seeking)
+
 
 %% Clear and save
 DATA.Files.Name = 'Temporaire' 
