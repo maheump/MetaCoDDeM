@@ -22,16 +22,18 @@ clc;
 clear all;
 diary 'MetaCoDDeM_diary.txt';
 
-% DATA.Subject.Number = randi(1000,1,1);
-% DATA.Subject.Group = upper(input('Subject group? (HS/OCD/DLGG) ', 's'));
-% DATA.Subject.Age = upper(input('Subject age? ', 's'));
-% DATA.Subject.Initials = upper(input('Subject initials? ', 's'));
-% DATA.Subject.Handedness = upper(input('Subject handedness? (L/R) ', 's'));
-% DATA.Subject.Gender = upper(input('Subject gender? (M/F) ', 's'));
-% DATA.Subject.Date = datestr(now);
-% 
-DATA.Files.Name = 'Temporaire'; % ['MetaCoDDeMproject_' num2str(DATA.Subject.Group) '_' DATA.Subject.Initials '_' num2str(DATA.Subject.Number)];
+DATA.Subject.Number = randi(1000,1,1);
+DATA.Subject.Group = upper(input('Subject group? (HS/OCD/DLGG) ', 's'));
+DATA.Subject.Age = upper(input('Subject age? ', 's'));
+DATA.Subject.Initials = upper(input('Subject initials? ', 's'));
+DATA.Subject.Handedness = upper(input('Subject handedness? (L/R) ', 's'));
+DATA.Subject.Gender = upper(input('Subject gender? (M/F) ', 's'));
+DATA.Subject.Date = datestr(now);
+DATA.Subjets.Phasis = input('Phasis? ');
+
+DATA.Files.Name = ['MetaCoDDeMproject_' num2str(DATA.Subject.Group) '_' DATA.Subject.Initials '_' num2str(DATA.Subject.Number)];
 mkdir(DATA.Files.Name); % Create the subject folder
+cd(DATA.Files.Name); % Go to the subject directory
 
 %% Define parameters
 
@@ -524,7 +526,6 @@ rethrow(error_message);
 end
 
 %% Save a table for further import in DMAT
-cd(DATA.Files.Name); % Go to the subject directory
 
 % For phasis 1
 DATA.Paradigm.Phasis1.Conditions = sort(unique(DATA.Paradigm.Phasis1.Coherences)); % Make a list of all possible coherence levels to future import in DMAT
@@ -562,15 +563,11 @@ for i = 1:1:size(DATA.Paradigm.Phasis3.Conditions, 1)
 end
 for i = 1:1:size(DATA.Paradigm.Phasis3.Performances, 1)
     DATA.Fit.DMAT.Phasis3(i,1) = intersect(find(DATA.Paradigm.Phasis3.Conditions(:,1) == DATA.Paradigm.Phasis3.Performances(i,1)), find(DATA.Paradigm.Phasis3.Conditions(:,2) == DATA.Paradigm.Phasis3.Performances(i,2)));
-end
+end % Problème NaN
 DATA.Fit.DMAT.Phasis3(i,2) = DATA.Answers.Correction(DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + 1 : DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials);
 DATA.Fit.DMAT.Phasis3(i,3) = DATA.Answers.RT1corr(DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + 1 : DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials);
 DMAT3 = DATA.Fit.DMAT.Phasis3;
 save(strcat(DATA.Files.Name, '_DMAT3'), 'DMAT3');
-
-%% Save a table for futher import in R
-
-% Make a summary table and save it in a csv file(DataSet, 'File', DATA.Files.Name '.csv', 'Delimiter', ',')
 
 %% Save files
 
@@ -583,9 +580,40 @@ save(DATA.Files.Name, 'DATA', 'display', 'dots');
 % Save fit graph
 saveas(fig, DATA.Files.Name, 'fig');
 
+%% Save a table for further import in R
+
+for i = 1:1:DATA.Paradigm.Trials
+    Rtable(:,1) = strcat('#', num2str(DATA.Subject.Number)); % Number
+    Rtable(:,2) = DATA.Subject.Date; % Date
+    Rtable(:,3) = DATA.Subject.Group; % Group
+    Rtable(:,3) = DATA.Subject.Age; % Age
+    Rtable(:,4) = DATA.Subject.Gender; % Gender
+    Rtable(:,6) = i; % Trials
+end
+Rtable(:,5) = [ones(DATA.Paradigm.Phasis1.Trials, 1) ; repmat(2, DATA.Paradigm.Phasis2.Trials, 1) ; repmat(3, DATA.Paradigm.Phasis3.Trials, 1)]; % Phasis
+Rtable(:,7) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; DATA.Paradigm.Phasis2.Performances(:,1) ; DATA.Paradigm.Phasis3.Performances(:,1)]; % Performances 'A'
+Rtable(:,8) = [DATA.Paradigm.Phasis1.Coherences ; DATA.Paradigm.Phasis2.Coherences(:,1) ; DATA.Paradigm.Phasis3.Coherences(:,1)]; % Coherences 'A'
+Rtable(:,9) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; DATA.Paradigm.Phasis2.Performances(:,2) ; NaN(DATA.Paradigm.Phasis3.Trials, 1)]; % Increasing performances
+Rtable(:,10) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; DATA.Paradigm.Phasis2.Coherences(:,2) ; DATA.Paradigm.Phasis3.Coherences(:,2)]; % Increasing coherences
+Rtable(:,11) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; DATA.Paradigm.Phasis2.Performances(:,3) ; DATA.Paradigm.Phasis3.Performances(:,3)]; % Performances 'B'
+Rtable(:,12) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; DATA.Paradigm.Phasis2.Coherences(:,3) ; DATA.Paradigm.Phasis3.Coherences(:,3)]; % Coherences 'B'
+Rtable(:,13) = DATA.Paradigm.Directions; % Directions
+Rtable(:,14) = DATA.Answers.Direction; % Type I answers
+Rtable(:,15) = DATA.Answers.Correction; % Correction
+Rtable(:,16) = DATA.Answers.RT1brut; % Type I RT (brut)
+Rtable(:,17) = DATA.Answers.RT1corr; % Type I RT (corrected)
+Rtable(:,18) = DATA.Answers.Confidence; % Type II (monitoring) answers
+Rtable(:,19) = DATA.Answers.RT2brut; % Type II (monitoring) RT (brut)
+Rtable(:,20) = DATA.Answers.RT2corr; % Type II (monitoring) RT (corrected)
+Rtable(:,21) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; NaN(DATA.Paradigm.Phasis2.Trials, 1) ; DATA.Paradigm.Phasis3.Performances(:,2)]; % Type II (control) answers
+Rtable(:,21) = DATA.Answers.RT3brut % Type II (control) RT (brut)
+Rtable(:,23) = DATA.Answers.RT3corr % Type II (control) RT (corrected)
+Headers = ['Number', 'Date', 'Group', 'Age', 'Gender', 'Phasis', 'Trials', 'A_perf', 'A_coh', 'Inc_perf', 'Inc_coh', 'B_perf', 'B_coh', 'Direction', 'Answer', 'Accuracy', 'RT1_brut', 'RT1_corr', 'Confidence', 'RT2_brut', 'RT2_corr', 'Seek', 'RT3_brut', 'RT3_corr']; % Headers
+
+%% Close
+
 % Return to the task directory
 cd ..
-
 % Clear some useless variables
 clear Phasis_number and Trial_number and Target_coherence and ans and i and fig and Review;
 % Close the diary
