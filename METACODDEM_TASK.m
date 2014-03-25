@@ -243,9 +243,11 @@ try
         if Phasis_number == 3
             % Display choice
             display.T3.index = 1;
+            Initial
+            startTime = GetSecs;
             while true
                 % Check the keys press and get the RT
-                [keyIsDown, DATA.RTs.Phasis3.Choice(Trial_number, 1), keyCode] = KbCheck; % Modifier RT
+                [keyIsDown, timeSecs, keyCode] = KbCheck;
                 % 
                 drawT3Info(display, display.T3.index, DATA.Paradigm.Phasis3.Gains);
                 
@@ -275,11 +277,20 @@ try
                                 DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) ...
                                     = DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) + DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2);
                             end
-                            waitTill(.1);
                             break;
                         end
                 end
             end
+            
+            % Compute control RT (brut and weighted according to the initial direction
+            DATA.Answers.RT3brut(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = timeSecs - startTime;
+            if display.T3.index ~= 1
+                DATA.Answers.RT3corr(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = DATA.Answers.RT3brut(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1)/abs(1 - display.T3.index);
+            elseif display.T3.index == 1
+                DATA.Answers.RT3corr(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = DATA.Answers.RT3brut(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1);
+            end
+            
+            waitTill(.1);
             
             if any(DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) == DATA.Paradigm.Phasis2.Facility_levels) == 1
                
@@ -314,13 +325,13 @@ try
         display.T1.line.angle = display.T1.line.table(2, display.T1.line.index);
         DATA.Answers.Initial_Direction(Trial_number, 1) = display.T1.line.angle;
         DATA.Answers.Direction(Trial_number, 1) = NaN;
-
+        startTime = GetSecs;
+        
         while true
-            % Check the keys press and get the RT
-            [keyIsDown, DATA.Answers.RT1brut(Trial_number, 1), keyCode] = KbCheck;
+            % Check the keys press
+            [keyIsDown, timeSecs, keyCode] = KbCheck;
             % Update the arrow according to key press
             drawT1Circle(display, DATA.Paradigm.Step);
-                       
             if keyIsDown
 
                     if keyCode(keys.down)
@@ -344,15 +355,19 @@ try
                         DATA.Answers.Direction(Trial_number, 1) = display.T1.line.table(1, display.T1.line.index);
                         break;
                     end
-                    
-            waitTill(.1);
             end
         end
-
-%       % Compute perceptual RT (brut and weighted according to the initial direction)
-%       DATA.Answers.RT1brut(Trial_number, 1) = ;
-%       DATA.RTs.Perceptual_weighted(Trial_number, 1) = ;
-
+        
+        waitTill(.1);
+        
+        % Compute perceptual RT (brut and weighted according to the initial direction) ----------------------------------------------
+        DATA.Answers.RT1brut(Trial_number, 1) = timeSecs - startTime;
+        if DATA.Answers.Initial_Direction(Trial_number, 1) ~= DATA.Answers.Direction(Trial_number, 1)
+            DATA.Answers.RT1corr(Trial_number, 1) = DATA.Answers.RT1brut(Trial_number, 1)/abs(DATA.Answers.Initial_Direction(Trial_number, 1) - DATA.Answers.Direction(Trial_number, 1));
+        elseif DATA.Answers.Initial_Direction(Trial_number, 1) ~= DATA.Answers.Direction(Trial_number, 1)
+            DATA.Answers.RT1corr(Trial_number, 1) = DATA.Answers.RT1brut(Trial_number, 1);
+        end
+        
         % Compute perceptual performance
         if DATA.Paradigm.Directions(Trial_number, 1) == DATA.Answers.Direction(Trial_number, 1)
             DATA.Answers.Correction(Trial_number, 1) = 1;
@@ -362,10 +377,10 @@ try
         
         % Get the amount of gain
         if Phasis_number == 1
-            DATA.Answers.Gains(Trial_number, 1) =;
+            DATA.Answers.Gains(Trial_number, 1) = DATA.Answers.Correction(Trial_number, 1);
         end
         if Phasis_number == 2
-            DATA.Answers.Gains(Trial_number, 1) =;
+            DATA.Answers.Gains(Trial_number, 1) = DATA.Answers.Correction(Trial_number, 1);
         end
         if Phasis_number == 3
             DATA.Answers.Gains(Trial_number, 1) = DATA.Paradigm.Phasis3.Gains(display.T3.index, DATA.Answers.Correction(Trial_number, 1) + 1);
@@ -381,7 +396,8 @@ try
         display.T2.rect2.size = 0;
         DATA.Answers.Initial_Confidence(Trial_number, 1) = round(((display.T2.rect2.size + display.T2.rect1.size) / (2 * display.T2.rect1.size)) * 100);
         DATA.Answers.Confidence(Trial_number, 1) = NaN;
-
+        startTime = GetSecs;
+        
         while true
             % Check the keys press and get the RT
             [keyIsDown, timeSecs, keyCode] = KbCheck;
@@ -410,8 +426,8 @@ try
 
                     elseif keyCode(keys.space)
                         % Get the metacognitive monitoring reaction time
-                        DATA.Answers.RT2brut(Trial_number, 1) = 
-                        DATA.Answers.RT2corr(Trial_number, 1) = DATA.Answers.RT2_brut(Trial_number, 1)/abs(DATA.Answers.Initial_Confidence(Trial_number, 1) - DATA.Answers.Confidence(Trial_number, 1)); % à corriger
+                        DATA.Answers.RT2brut(Trial_number, 1) = timeSecs - startTime;
+                        DATA.Answers.RT2corr(Trial_number, 1) = DATA.Answers.RT2brut(Trial_number, 1)/abs(DATA.Answers.Initial_Confidence(Trial_number, 1) - DATA.Answers.Confidence(Trial_number, 1));
                         % Get the confidence score on a 100 scale
                         DATA.Answers.Confidence(Trial_number, 1) = round(((display.T2.rect2.size + display.T2.rect1.size) / (2 * display.T2.rect1.size)) * 100);
                         waitTill(.1);
@@ -419,7 +435,15 @@ try
                     end
             end
         end
-
+        
+        % Compute monitoring RT (brut and weighted according to the initial confidence)
+        DATA.Answers.RT2brut(Trial_number, 1) = timeSecs - startTime;
+        if DATA.Answers.Initial_Confidence(Trial_number, 1) ~= DATA.Answers.Confidence(Trial_number, 1)
+            DATA.Answers.RT2corr(Trial_number, 1) = DATA.Answers.RT2brut(Trial_number, 1)/abs(DATA.Answers.Initial_Confidence(Trial_number, 1) - DATA.Answers.Confidence(Trial_number, 1));
+        elseif DATA.Answers.Initial_Confidence(Trial_number, 1) == DATA.Answers.Confidence(Trial_number, 1)
+            DATA.Answers.RT2corr(Trial_number, 1) = DATA.Answers.RT2brut(Trial_number, 1);
+        end
+        
         % Display a break screen
         if ((Trial_number == (DATA.Paradigm.Phasis1.Trials/2)) || (Trial_number == (DATA.Paradigm.Phasis2.Trials/2)) || (Trial_number == (DATA.Paradigm.Phasis3.Trials/2)))
             drawText(display, [0 2], 'Faîtes une pause d''une ou deux minutes', colors.white, 40);
@@ -499,10 +523,8 @@ Screen('CloseAll');
 rethrow(error_message);
 end
 
-%% Fitting the OPIS model (Optimal Proactive Information Seeking)
-
-
-%% Save a table for future import in DMAT
+%% Save a table for further import in DMAT
+cd(DATA.Files.Name); % Go to the subject directory
 
 % For phasis 1
 DATA.Paradigm.Phasis1.Conditions = sort(unique(DATA.Paradigm.Phasis1.Coherences)); % Make a list of all possible coherence levels to future import in DMAT
@@ -546,19 +568,20 @@ DATA.Fit.DMAT.Phasis3(i,3) = DATA.Answers.RT1corr(DATA.Paradigm.Phasis1.Trials +
 DMAT3 = DATA.Fit.DMAT.Phasis3;
 save(strcat(DATA.Files.Name, '_DMAT3'), 'DMAT3');
 
-%% Clear and save
+%% Save a table for futher import in R
+
+% Make a summary table and save it in a csv file(DataSet, 'File', DATA.Files.Name '.csv', 'Delimiter', ',')
+
+%% Save files
 
 % Get the __
-DATA.Answers.Money = 10 + (sum(DATA.Answers.Gains)/1000);
+DATA.Answers.Money = 5 + (sum(DATA.Answers.Gains)/1000);
 
 % Save data
-cd(DATA.Files.Name); % Go to the subject directory
-save(DATA.Files.Name, 'DATA', 'display', 'dots'); % Save data
+save(DATA.Files.Name, 'DATA', 'display', 'dots');
 
 % Save fit graph
 saveas(fig, DATA.Files.Name, 'fig');
-
-% Make a summary table and save it in a csv file(DataSet, 'File', DATA.Files.Name '.csv', 'Delimiter', ',')
 
 % Return to the task directory
 cd ..
