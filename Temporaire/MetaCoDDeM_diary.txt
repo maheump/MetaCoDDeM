@@ -1,0 +1,10 @@
+PTB-INFO: Connection to Psychtoolbox kernel support driver instance #0 (Revision 0) established.
+PTB-INFO: Disconnecting from kernel driver instance #0 for detected Intel GPU for safety reasons. setenv('PSYCH_ALLOW_DANGEROUS', '1') to override.
+PTB-INFO: Running on OSX 10.9+ - Enabling protection against AppNap and other evils.
+{Error using <a href="matlab:helpUtils.errorDocCallback('drawText')" style="font-weight:bold">drawText</a>
+Too many input arguments.
+
+Error in <a href="matlab:helpUtils.errorDocCallback('METACODDEM_TASK', '/Users/Maxime/Documents/MATLAB/MetaCoDDeM_project/METACODDEM_TASK.m', 148)" style="font-weight:bold">METACODDEM_TASK</a> (<a href="matlab: opentoline('/Users/Maxime/Documents/MATLAB/MetaCoDDeM_project/METACODDEM_TASK.m',148,0)">line 148</a>)
+            drawText(display, [0 0], 'INSTRUCTIONS PHASIS 1', colors.white, 40);
+} 
+METACODDEM_TASK
