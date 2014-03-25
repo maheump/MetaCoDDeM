@@ -360,7 +360,7 @@ try
         
         waitTill(.1);
         
-        % Compute perceptual RT (brut and weighted according to the initial direction) ----------------------------------------------
+        % Compute perceptual RT (brut and weighted according to the initial direction)
         DATA.Answers.RT1brut(Trial_number, 1) = timeSecs - startTime;
         if DATA.Answers.Initial_Direction(Trial_number, 1) ~= DATA.Answers.Direction(Trial_number, 1)
             DATA.Answers.RT1corr(Trial_number, 1) = DATA.Answers.RT1brut(Trial_number, 1)/abs(DATA.Answers.Initial_Direction(Trial_number, 1) - DATA.Answers.Direction(Trial_number, 1));
