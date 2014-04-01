@@ -24,16 +24,15 @@ diary 'MetaCoDDeM_diary.txt';
 
 DATA.Subject.Number = randi(1000,1,1);
 DATA.Subject.Group = upper(input('Subject group? (HS/OCD/DLGG) ', 's'));
-DATA.Subject.Age = upper(input('Subject age? ', 's'));
+DATA.Subject.Age = str2double(input('Subject age? ', 's'));
 DATA.Subject.Initials = upper(input('Subject initials? ', 's'));
 DATA.Subject.Handedness = upper(input('Subject handedness? (L/R) ', 's'));
 DATA.Subject.Gender = upper(input('Subject gender? (M/F) ', 's'));
+DATA.Subject.Phasis = input('Phasis? ');
 DATA.Subject.Date = datestr(now);
-DATA.Subjets.Phasis = input('Phasis? ');
 
-DATA.Files.Name = ['MetaCoDDeMproject_' num2str(DATA.Subject.Group) '_' DATA.Subject.Initials '_' num2str(DATA.Subject.Number)];
+DATA.Files.Name = ['MetaCoDDeM_' num2str(DATA.Subject.Group) '_' DATA.Subject.Initials '_' num2str(DATA.Subject.Number)];
 mkdir(DATA.Files.Name); % Create the subject folder
-cd(DATA.Files.Name); % Go to the subject directory
 
 %% Define parameters
 
@@ -98,7 +97,7 @@ display.T2.rect2.color = colors.red;
 DATA.Paradigm.Phasis1.Coherences_margin = .1;
 DATA.Paradigm.Phasis1.Coherences_level = 0.1:DATA.Paradigm.Phasis1.Coherences_margin:(1 - DATA.Paradigm.Phasis1.Coherences_margin); % Define the list of coherence levels
 DATA.Paradigm.Phasis1.Coherences_level = transpose(DATA.Paradigm.Phasis1.Coherences_level); % Transform it into a column
-DATA.Paradigm.Phasis1.Coherences_number = 15; % Number of trials per coherence level
+DATA.Paradigm.Phasis1.Coherences_number = 1;%5; % Number of trials per coherence level
 DATA.Paradigm.Phasis1.Coherences = repmat(DATA.Paradigm.Phasis1.Coherences_level, DATA.Paradigm.Phasis1.Coherences_number, 1); % Repeat each coherence level a certain number of time
 DATA.Paradigm.Phasis1.Coherences = DATA.Paradigm.Phasis1.Coherences(randperm(length(DATA.Paradigm.Phasis1.Coherences)), 1); % Randomly shuffle it
 DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1); % The phasis 1 total number of trials is the size of this coherence list
@@ -120,8 +119,7 @@ DATA.Paradigm.Phasis2.Trials = size(DATA.Paradigm.Phasis2.Performances, 1); % Ge
 % Set the parameters for the phasis 3 (information seeking phasis)
 DATA.Paradigm.Phasis3.Gains = [100, -200; 80, -80; 70, -70; 60, -60; 50, -50]; % Define the gain matrix
 DATA.Paradigm.Phasis3.Accuracies_number = 1;%0; % Define the number of trials per accuracy level
-% Remettre 1-max(review)
-DATA.Paradigm.Phasis3.Accuracies_levels = 0.1:(0.9-0.1)/16:0.9; % Define the accuracy levels we want to test
+DATA.Paradigm.Phasis3.Accuracies_levels = 0.1:((1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels)))-0.1)/15:(1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels))); % Define the accuracy levels we want to test
 DATA.Paradigm.Phasis3.Accuracies = repmat(DATA.Paradigm.Phasis3.Accuracies_levels, 1, DATA.Paradigm.Phasis3.Accuracies_number); % Define the accuracy levels we want to test for the total number of trials
 DATA.Paradigm.Phasis3.Accuracies = transpose(DATA.Paradigm.Phasis3.Accuracies); % Transform it into a column
 DATA.Paradigm.Phasis3.Performances = DATA.Paradigm.Phasis3.Accuracies(randperm(length(DATA.Paradigm.Phasis3.Accuracies)), 1); % Randomly shuffle it
@@ -130,7 +128,7 @@ DATA.Paradigm.Phasis3.Trials = size(DATA.Paradigm.Phasis3.Performances, 1); % Ge
 % Get the total number of trials
 DATA.Paradigm.Trials = DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials;
 for i = 1:1:DATA.Paradigm.Trials % Get random direction for each trial
-    DATA.Paradigm.Directions(i, 1) = display.T1.line.table_a(randi(size(display.T1.line.table_a)));
+    DATA.Paradigm.Directions(i,1) = display.T1.line.table_a(randi(size(display.T1.line.table_a)));
 end
 
 %% Start the trial
@@ -180,7 +178,7 @@ try
         while KbCheck; end
         KbWait;
         
-        %% STIMULUS
+        %% Stimulus
 
         % Define dots motion coherence
         if Phasis_number == 1
@@ -242,10 +240,11 @@ try
             end
         end
         
+        %% Type II answer (control)
+        
         if Phasis_number == 3
             % Display choice
             display.T3.index = 1;
-            Initial
             startTime = GetSecs;
             while true
                 % Check the keys press and get the RT
@@ -272,8 +271,8 @@ try
                         % Get the information seeking level (easiness increasing)
                         if keyCode(keys.space)
                             if display.T3.index == 1
-                                DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) = NaN;
-                                DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = NaN;
+                                DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) = -1;
+                                DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1);
                             elseif display.T3.index == 2 || 3 || 4 || 5
                                 DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) = DATA.Paradigm.Phasis2.Facility_levels(display.T3.index - 1);
                                 DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) ...
@@ -281,6 +280,8 @@ try
                             end
                             break;
                         end
+                        
+                        waitTill(.05);
                 end
             end
             
@@ -291,9 +292,7 @@ try
             elseif display.T3.index == 1
                 DATA.Answers.RT3corr(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = DATA.Answers.RT3brut(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1);
             end
-            
-            waitTill(.1);
-            
+                        
             if any(DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) == DATA.Paradigm.Phasis2.Facility_levels) == 1
                
                 % Get a coherence level according to a given performance
@@ -321,6 +320,8 @@ try
                 waitTill(.1);
             end
         end
+        
+        %% Type I answer
         
         % Get the response
         display.T1.line.index = 1; % Column number
@@ -357,11 +358,11 @@ try
                         DATA.Answers.Direction(Trial_number, 1) = display.T1.line.table(1, display.T1.line.index);
                         break;
                     end
+                    
+                    waitTill(.05);
             end
         end
-        
-        waitTill(.1);
-        
+                
         % Compute perceptual RT (brut and weighted according to the initial direction)
         DATA.Answers.RT1brut(Trial_number, 1) = timeSecs - startTime;
         if DATA.Answers.Initial_Direction(Trial_number, 1) ~= DATA.Answers.Direction(Trial_number, 1)
@@ -393,7 +394,7 @@ try
         Screen('Flip',display.windowPtr);
         waitTill(.1);
 
-        %% CONFIDENCE
+        %% Type II answer (monitoring)
 
         display.T2.rect2.size = 0;
         DATA.Answers.Initial_Confidence(Trial_number, 1) = round(((display.T2.rect2.size + display.T2.rect1.size) / (2 * display.T2.rect1.size)) * 100);
@@ -455,9 +456,12 @@ try
             KbWait;
         end
 
-        %% FIT
+        %% Psychometric fit
         if Phasis_number == 1
             if Trial_number == DATA.Paradigm.Phasis1.Trials
+                
+                % Make the subject waits while fitting the psychometric curve
+                drawText(display, [0 0], 'Veuillez patienter quelques secondes', colors.white, 40);
                 
                 % Make a coherence x performance table
                 DATA.Fit.Psychometric.Coherence = unique(DATA.Paradigm.Phasis1.Coherences);
@@ -475,8 +479,8 @@ try
                 DATA.Fit.Psychometric.SigFit = nlinfit(DATA.Fit.Psychometric.Coherence, DATA.Fit.Psychometric.Performance, DATA.Fit.Psychometric.SigFunc, [1 1]);
                 
                 % A SUPPRIMER
-%                 DATA.Fit.Psychometric.SigFit(1) = 10;
-%                 DATA.Fit.Psychometric.SigFit(2) = .50;
+                DATA.Fit.Psychometric.SigFit(1) = 10;
+                DATA.Fit.Psychometric.SigFit(2) = .50;
                 
                 % Draw the figure
                 fig = figure(1);
@@ -525,96 +529,150 @@ Screen('CloseAll');
 rethrow(error_message);
 end
 
-%% Save a table for further import in DMAT
+%% Get the compensation payment
+if (sum(DATA.Answers.Gains)/1000) <= 0
+    DATA.Answers.Money = 5;
+elseif (sum(DATA.Answers.Gains)/1000) > 0
+    DATA.Answers.Money = 5 + (sum(DATA.Answers.Gains)/1000);
+end
+
+%% Save a table for further import in DMAT (trial table with condition, correction and reaction time)
 
 % For phasis 1
-DATA.Paradigm.Phasis1.Conditions = sort(unique(DATA.Paradigm.Phasis1.Coherences)); % Make a list of all possible coherence levels to future import in DMAT
+DATA.Paradigm.Phasis1.Conditions = sort(unique(DATA.Paradigm.Phasis1.Coherences)); % Make a list of all possible coherence levels
 for i = 1:1:size(DATA.Paradigm.Phasis1.Conditions)
-    DATA.Paradigm.Phasis1.Conditions(i,2) = i;
+    DATA.Paradigm.Phasis1.Conditions(i,2) = i; % Attribute a condition to each of these coherence levels
 end
 
 for i = 1:1:size(DATA.Paradigm.Phasis1.Coherences,1)
-    DATA.Fit.DMAT.Phasis1(i,1) = find(DATA.Paradigm.Phasis1.Conditions(:,1) == DATA.Paradigm.Phasis1.Coherences(i));
+    DATA.Fit.DMAT.Phasis1(i,1) = find(DATA.Paradigm.Phasis1.Conditions(:,1) == DATA.Paradigm.Phasis1.Coherences(i)); % For each phasis 1 trial, get its associated condition based on its coherence level
 end
-DATA.Fit.DMAT.Phasis1(:,2) = DATA.Answers.Correction(1:DATA.Paradigm.Phasis1.Trials);
-DATA.Fit.DMAT.Phasis1(:,3) = DATA.Answers.RT1corr(1:DATA.Paradigm.Phasis1.Trials);
+DATA.Fit.DMAT.Phasis1(:,2) = DATA.Answers.Correction(1:DATA.Paradigm.Phasis1.Trials); % For each phasis 1 trial, get its associated correction
+DATA.Fit.DMAT.Phasis1(:,3) = DATA.Answers.RT1corr(1:DATA.Paradigm.Phasis1.Trials); % For each phasis 1 trial, get its associated RT
 DMAT1 = DATA.Fit.DMAT.Phasis1;
-save(strcat(DATA.Files.Name, '_DMAT1'), 'DMAT1');
 
 % For phasis 2
-DATA.Paradigm.Phasis2.Conditions(:,1) = repmat(unique(DATA.Paradigm.Phasis2.Performances(:,1)), size(DATA.Paradigm.Phasis2.Facility_levels, 2), 1);
-DATA.Paradigm.Phasis2.Conditions(:,2) = sort(repmat(transpose(DATA.Paradigm.Phasis2.Facility_levels), size(DATA.Paradigm.Phasis2.Accuracies_levels, 2), 1));
+DATA.Paradigm.Phasis2.Conditions(:,1) = repmat(unique(DATA.Paradigm.Phasis2.Performances(:,1)), size(DATA.Paradigm.Phasis2.Facility_levels, 2), 1); % Make a list of all possible performance levels ...
+DATA.Paradigm.Phasis2.Conditions(:,2) = sort(repmat(transpose(DATA.Paradigm.Phasis2.Facility_levels), size(DATA.Paradigm.Phasis2.Accuracies_levels, 2), 1)); % ... and all possible increasing facility indexes
 for i = 1:1:size(DATA.Paradigm.Phasis2.Conditions, 1)
-    DATA.Paradigm.Phasis2.Conditions(i,3) = i;
+    DATA.Paradigm.Phasis2.Conditions(i,3) = i; % Attribute a condition to each of these performance levels
 end
 for i = 1:1:size(DATA.Paradigm.Phasis2.Performances,1)
-    DATA.Fit.DMAT.Phasis2(i,1) = find(DATA.Paradigm.Phasis2.Conditions(:,1) == DATA.Paradigm.Phasis2.Performances(i,3));
+    DATA.Fit.DMAT.Phasis2(i,1) = intersect(find(DATA.Paradigm.Phasis2.Conditions(:,1) == DATA.Paradigm.Phasis2.Performances(i,1)), find(DATA.Paradigm.Phasis2.Conditions(:,2) == DATA.Paradigm.Phasis2.Performances(i,2))); %
 end
-DATA.Fit.DMAT.Phasis2(:,2) = DATA.Answers.Correction(DATA.Paradigm.Phasis1.Trials + 1 : DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials);
-DATA.Fit.DMAT.Phasis2(:,3) = DATA.Answers.RT1corr(DATA.Paradigm.Phasis1.Trials + 1 : DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials);
+DATA.Fit.DMAT.Phasis2(:,2) = DATA.Answers.Correction(DATA.Paradigm.Phasis1.Trials + 1 : DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials); % For each phasis 2 trial, get its associated correction
+DATA.Fit.DMAT.Phasis2(:,3) = DATA.Answers.RT1corr(DATA.Paradigm.Phasis1.Trials + 1 : DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials); % For each phasis 2 trial, get its associated RT
 DMAT2 = DATA.Fit.DMAT.Phasis2;
-save(strcat(DATA.Files.Name, '_DMAT2'), 'DMAT2');
 
 % For phasis 3
-DATA.Paradigm.Phasis3.Conditions(:,1) = repmat(unique(DATA.Paradigm.Phasis3.Performances(:,1)), size(horzcat(DATA.Paradigm.Phasis2.Facility_levels, NaN), 2), 1);
-DATA.Paradigm.Phasis3.Conditions(:,2) = sort(repmat(transpose(horzcat(DATA.Paradigm.Phasis2.Facility_levels, NaN)), size(DATA.Paradigm.Phasis3.Accuracies_levels, 2), 1));
+DATA.Paradigm.Phasis3.Conditions(:,1) = repmat(unique(DATA.Paradigm.Phasis3.Performances(:,1)), size(horzcat(DATA.Paradigm.Phasis2.Facility_levels, NaN), 2), 1); % Make a list of all possible performance levels ...
+DATA.Paradigm.Phasis3.Conditions(:,2) = sort(repmat(transpose(horzcat(DATA.Paradigm.Phasis2.Facility_levels, -1)), size(DATA.Paradigm.Phasis3.Accuracies_levels, 2), 1)); % ... and all possible increasing facility indexes (including the case where there is no information seeking)
 for i = 1:1:size(DATA.Paradigm.Phasis3.Conditions, 1)
-    DATA.Paradigm.Phasis3.Conditions(i,3) = i;
+    DATA.Paradigm.Phasis3.Conditions(i,3) = i; % Attribute a condition to each of these combinations
 end
 for i = 1:1:size(DATA.Paradigm.Phasis3.Performances, 1)
     DATA.Fit.DMAT.Phasis3(i,1) = intersect(find(DATA.Paradigm.Phasis3.Conditions(:,1) == DATA.Paradigm.Phasis3.Performances(i,1)), find(DATA.Paradigm.Phasis3.Conditions(:,2) == DATA.Paradigm.Phasis3.Performances(i,2)));
-end % Problème NaN
-DATA.Fit.DMAT.Phasis3(i,2) = DATA.Answers.Correction(DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + 1 : DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials);
-DATA.Fit.DMAT.Phasis3(i,3) = DATA.Answers.RT1corr(DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + 1 : DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials);
+end
+DATA.Fit.DMAT.Phasis3(:,2) = DATA.Answers.Correction(DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + 1 : DATA.Paradigm.Trials);
+DATA.Fit.DMAT.Phasis3(:,3) = DATA.Answers.RT1corr(DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + 1 : DATA.Paradigm.Trials);
 DMAT3 = DATA.Fit.DMAT.Phasis3;
-save(strcat(DATA.Files.Name, '_DMAT3'), 'DMAT3');
+
+%% DMAT fit
+
+
+
+%% Save a table for further import in R
+
+% Define the table
+Headers = {'Number', 'Date', 'Group', 'Age', 'Gender', ... % Subject information
+    'Trials', 'Phasis', 'A_perf', 'A_coh', 'Inc_perf', 'Inc_coh', 'B_perf', 'B_coh', 'Direction', ... % Independant variables
+    'Answer', 'Accuracy', 'RT1_brut', 'RT1_corr', 'Confidence', 'RT2_brut', 'RT2_corr', 'Seek', 'RT3_brut', 'RT3_corr', 'Gains'}; % Dependant variables
+Rtable = cell(DATA.Paradigm.Trials+1,length(Headers));
+
+Rtable(1,:) = Headers;
+for i = 1:1:DATA.Paradigm.Trials
+    Rtable{i+1,1} = strcat('#', num2str(DATA.Subject.Number)); % Number
+    Rtable{i+1,2} = DATA.Subject.Date; % Date
+    Rtable{i+1,3} = DATA.Subject.Group; % Group
+    Rtable{i+1,4} = DATA.Subject.Age; % Age
+    Rtable{i+1,5} = DATA.Subject.Gender; % Gender
+    Rtable{i+1,6} = i; % Trials
+    Rtable{i+1,14} = DATA.Paradigm.Directions(i); % Directions
+    Rtable{i+1,15} = DATA.Answers.Direction(i); % Type I answers
+    Rtable{i+1,16} = DATA.Answers.Correction(i); % Correction
+    Rtable{i+1,17} = DATA.Answers.RT1brut(i); % Type I RT (brut)
+    Rtable{i+1,18} = DATA.Answers.RT1corr(i); % Type I RT (corrected)
+    Rtable{i+1,19} = DATA.Answers.Confidence(i); % Type II (monitoring) answers
+    Rtable{i+1,20} = DATA.Answers.RT2brut(i); % Type II (monitoring) RT (brut)
+    Rtable{i+1,21} = DATA.Answers.RT2corr(i); % Type II (monitoring) RT (corrected)
+    Rtable{i+1,25} = DATA.Answers.Gains(i); % Gains
+end
+% For phasis 1
+for i = 1:1:DATA.Paradigm.Phasis1.Trials
+    Rtable{i+1,7} = 1; % Phasis
+    Rtable{i+1,8} = NaN; % Performances 'A'
+    Rtable{i+1,9} = DATA.Paradigm.Phasis1.Coherences(i); % Coherences 'A'
+    Rtable{i+1,10} = NaN; % Increasing performances
+    Rtable{i+1,11} = NaN; % Increasing coherences
+    Rtable{i+1,12} = NaN; % Performances 'B'
+    Rtable{i+1,13} = NaN; % Coherences 'B'
+    Rtable{i+1,22} = NaN; % Type II (control) answers
+    Rtable{i+1,23} = NaN; % Type II (control) RT (brut)
+    Rtable{i+1,24} = NaN; % Type II (control) RT (corrected)
+end
+% For phasis 2
+for i = 1:1:DATA.Paradigm.Phasis2.Trials
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+1,7} = 2; % Phasis
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+1,8} = DATA.Paradigm.Phasis2.Performances(i,1); % Performances 'A'
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+1,9} = DATA.Paradigm.Phasis2.Coherences(i,1); % Coherences 'A'
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+1,10} = DATA.Paradigm.Phasis2.Performances(i,2); % Increasing performances
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+1,11} = DATA.Paradigm.Phasis2.Coherences(i,2); % Increasing coherences
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+1,12} = DATA.Paradigm.Phasis2.Performances(i,3); % Performances 'B'
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+1,13} = DATA.Paradigm.Phasis2.Coherences(i,3); % Coherences 'B'
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+1,22} = NaN; % Type II (control) answers
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+1,23} = NaN; % Type II (control) RT (brut)
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+1,24} = NaN; % Type II (control) RT (corrected)
+end
+% For phasis 3
+for i = 1:1:DATA.Paradigm.Phasis3.Trials
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+DATA.Paradigm.Phasis2.Trials+1,7} = 3; % Phasis
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+DATA.Paradigm.Phasis2.Trials+1,8} = DATA.Paradigm.Phasis3.Performances(i,1); % Performances 'A'
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+DATA.Paradigm.Phasis2.Trials+1,9} = DATA.Paradigm.Phasis3.Coherences(i,1); % Coherences 'A'
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+DATA.Paradigm.Phasis2.Trials+1,10} = NaN; % Increasing performances
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+DATA.Paradigm.Phasis2.Trials+1,11} = DATA.Paradigm.Phasis3.Coherences(i,2); % Increasing coherences
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+DATA.Paradigm.Phasis2.Trials+1,12} = DATA.Paradigm.Phasis3.Performances(i,3); % Performances 'B'
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+DATA.Paradigm.Phasis2.Trials+1,13} = DATA.Paradigm.Phasis3.Coherences(i,3); % Coherences 'B'
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+DATA.Paradigm.Phasis2.Trials+1,22} = DATA.Paradigm.Phasis3.Performances(i,2); % Type II (control) answers
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+DATA.Paradigm.Phasis2.Trials+1,23} = DATA.Answers.RT3brut(i,1); % Type II (control) RT (brut)
+    Rtable{i+DATA.Paradigm.Phasis1.Trials+DATA.Paradigm.Phasis2.Trials+1,24} = DATA.Answers.RT3corr(i,1); % Type II (control) RT (corrected)
+end
 
 %% Save files
 
-% Get the __
-DATA.Answers.Money = 5 + (sum(DATA.Answers.Gains)/1000);
+% Go to the subject directory
+cd(DATA.Files.Name);
+
+% Save data for further import in DMAT
+save(strcat(DATA.Files.Name, '_DMAT1'), 'DMAT1');
+save(strcat(DATA.Files.Name, '_DMAT2'), 'DMAT2');
+save(strcat(DATA.Files.Name, '_DMAT3'), 'DMAT3');
 
 % Save data
 save(DATA.Files.Name, 'DATA', 'display', 'dots');
 
+% Save R table
+cell2csv(strcat(DATA.Files.Name, '.csv'), Rtable);
+
 % Save fit graph
 saveas(fig, DATA.Files.Name, 'fig');
 
-%% Save a table for further import in R
-
-for i = 1:1:DATA.Paradigm.Trials
-    Rtable(:,1) = strcat('#', num2str(DATA.Subject.Number)); % Number
-    Rtable(:,2) = DATA.Subject.Date; % Date
-    Rtable(:,3) = DATA.Subject.Group; % Group
-    Rtable(:,3) = DATA.Subject.Age; % Age
-    Rtable(:,4) = DATA.Subject.Gender; % Gender
-    Rtable(:,6) = i; % Trials
-end
-Rtable(:,5) = [ones(DATA.Paradigm.Phasis1.Trials, 1) ; repmat(2, DATA.Paradigm.Phasis2.Trials, 1) ; repmat(3, DATA.Paradigm.Phasis3.Trials, 1)]; % Phasis
-Rtable(:,7) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; DATA.Paradigm.Phasis2.Performances(:,1) ; DATA.Paradigm.Phasis3.Performances(:,1)]; % Performances 'A'
-Rtable(:,8) = [DATA.Paradigm.Phasis1.Coherences ; DATA.Paradigm.Phasis2.Coherences(:,1) ; DATA.Paradigm.Phasis3.Coherences(:,1)]; % Coherences 'A'
-Rtable(:,9) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; DATA.Paradigm.Phasis2.Performances(:,2) ; NaN(DATA.Paradigm.Phasis3.Trials, 1)]; % Increasing performances
-Rtable(:,10) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; DATA.Paradigm.Phasis2.Coherences(:,2) ; DATA.Paradigm.Phasis3.Coherences(:,2)]; % Increasing coherences
-Rtable(:,11) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; DATA.Paradigm.Phasis2.Performances(:,3) ; DATA.Paradigm.Phasis3.Performances(:,3)]; % Performances 'B'
-Rtable(:,12) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; DATA.Paradigm.Phasis2.Coherences(:,3) ; DATA.Paradigm.Phasis3.Coherences(:,3)]; % Coherences 'B'
-Rtable(:,13) = DATA.Paradigm.Directions; % Directions
-Rtable(:,14) = DATA.Answers.Direction; % Type I answers
-Rtable(:,15) = DATA.Answers.Correction; % Correction
-Rtable(:,16) = DATA.Answers.RT1brut; % Type I RT (brut)
-Rtable(:,17) = DATA.Answers.RT1corr; % Type I RT (corrected)
-Rtable(:,18) = DATA.Answers.Confidence; % Type II (monitoring) answers
-Rtable(:,19) = DATA.Answers.RT2brut; % Type II (monitoring) RT (brut)
-Rtable(:,20) = DATA.Answers.RT2corr; % Type II (monitoring) RT (corrected)
-Rtable(:,21) = [NaN(DATA.Paradigm.Phasis1.Trials, 1) ; NaN(DATA.Paradigm.Phasis2.Trials, 1) ; DATA.Paradigm.Phasis3.Performances(:,2)]; % Type II (control) answers
-Rtable(:,21) = DATA.Answers.RT3brut % Type II (control) RT (brut)
-Rtable(:,23) = DATA.Answers.RT3corr % Type II (control) RT (corrected)
-Headers = ['Number', 'Date', 'Group', 'Age', 'Gender', 'Phasis', 'Trials', 'A_perf', 'A_coh', 'Inc_perf', 'Inc_coh', 'B_perf', 'B_coh', 'Direction', 'Answer', 'Accuracy', 'RT1_brut', 'RT1_corr', 'Confidence', 'RT2_brut', 'RT2_corr', 'Seek', 'RT3_brut', 'RT3_corr']; % Headers
-
-%% Close
+%% Close for good
 
 % Return to the task directory
 cd ..
+
 % Clear some useless variables
-clear Phasis_number and Trial_number and Target_coherence and ans and i and fig and Review;
+clear Phasis_number and Trial_number and Target_coherence and ans and i and fig and Review and Headers;
+
 % Close the diary
 diary off;
