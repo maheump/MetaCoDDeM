@@ -403,31 +403,18 @@ try
         end
         
         %% Type I answer
-                    
-        % Get the response
-        display.T1.line.index = 1; % Column number
-        display.T1.line.angle = display.T1.line.table(2, display.T1.line.index); % Correspondant
-        DATA.Answers.Initial_Direction(Trial_number, 1) = display.T1.line.angle;
-        DATA.Answers.Direction(Trial_number, 1) = NaN;
-        startTime = GetSecs;
-            
+        
         if (DATA.Subject.Design == 1)
-            
-            while true
-                % Check the keys press
-                [keyIsDown, timeSecs, keyCode] = KbCheck;
-                % Update the arrow according to key press
-                drawT1Binary(display);
-                if keyIsDown
-            
-                    
-                    
-                    
-                    
-                    
-                    
+            % blabla
         
         elseif (DATA.Subject.Design == 2)
+            
+            % Get the response
+            display.T1.line.index = 1; % Column number
+            display.T1.line.angle = display.T1.line.table(2, display.T1.line.index);
+            DATA.Answers.Initial_Direction(Trial_number, 1) = display.T1.line.angle;
+            DATA.Answers.Direction(Trial_number, 1) = NaN;
+            startTime = GetSecs;
 
             while true
                 % Check the keys press
@@ -477,43 +464,33 @@ try
         
         
         
-      
         
-        % For 2AFC design, compute perceptual performance and classify the answer according to signal detection theory
+        % Compute perceptual performance
+        if DATA.Paradigm.Directions(Trial_number, 1) == DATA.Answers.Direction(Trial_number, 1)
+            DATA.Answers.Correction(Trial_number, 1) = 1;
+        elseif DATA.Paradigm.Directions(Trial_number, 1) ~= DATA.Answers.Direction(Trial_number, 1)
+            DATA.Answers.Correction(Trial_number, 1) = 0;
+        end
+        
+        % Classify the answer according to signal detection theory
         if (DATA.Subject.Design == 1)
-            if (DATA.Paradigm.Directions(Trial_number, 1) == 270) && (DATA.Answers.Direction(Trial_number, 1) == 270) % If it was a leftward moving stimulus and the subject give a correct answer (left)
-                DATA.Answers.Correction(Trial_number, 1) = 1; % Correct answer
+            if (DATA.Answers.Correction(Trial_number, 1) = 1) && (DATA.Paradigm.Directions(Trial_number, 1) == 270)
                 DATA.Answers.Label(Trial_number, 1) = 1 % Hit
             end
-            if (DATA.Paradigm.Directions(Trial_number, 1) == 270) && (DATA.Answers.Direction(Trial_number, 1) == 90) % If it was a leftward moving stimulus and the subject give a wrong answer (right)
-                DATA.Answers.Correction(Trial_number, 1) = 0; % Wrong answer
-                DATA.Answers.Label(Trial_number, 1) = 2 % False alarm
-            end
-            if (DATA.Paradigm.Directions(Trial_number, 1) == 90) && (DATA.Answers.Direction(Trial_number, 1) == 270) % If it was a rightward moving stimulus and the subject give a wrong answer (left)
-                DATA.Answers.Correction(Trial_number, 1) = 0; % Wrong answer
-                DATA.Answers.Label(Trial_number, 1) = 3 % Miss
-            end
-            if (DATA.Paradigm.Directions(Trial_number, 1) == 90) && (DATA.Answers.Direction(Trial_number, 1) == 90) % If it was a rightward moving stimulus and the subject give a correct answer (right)
-                DATA.Answers.Correction(Trial_number, 1) = 1; % Correct answer
-                DATA.Answers.Label(Trial_number, 1) = 4 % Correct rejection
-            end
+            DATA.Answers.Label(Trial_number, 1) = 2 % False alarm
+            DATA.Answers.Label(Trial_number, 1) = 3 % Miss
+            DATA.Answers.Label(Trial_number, 1) = 4 % Correct rejection
         
-        % For "clock" design, compute perceptual performance
-        if (DATA.Subject.Design == 2)
-            if DATA.Paradigm.Directions(Trial_number, 1) == DATA.Answers.Direction(Trial_number, 1)
-                DATA.Answers.Correction(Trial_number, 1) = 1;
-            elseif DATA.Paradigm.Directions(Trial_number, 1) ~= DATA.Answers.Direction(Trial_number, 1)
-                DATA.Answers.Correction(Trial_number, 1) = 0;
-            end
-
+        
+        
         % Get the amount of gain
-        if (Phasis_number == 1)
+        if Phasis_number == 1
             DATA.Answers.Gains(Trial_number, 1) = DATA.Answers.Correction(Trial_number, 1);
         end
-        if (Phasis_number == 2)
+        if Phasis_number == 2
             DATA.Answers.Gains(Trial_number, 1) = DATA.Answers.Correction(Trial_number, 1);
         end
-        if (Phasis_number == 3)
+        if Phasis_number == 3
             DATA.Answers.Gains(Trial_number, 1) = DATA.Paradigm.Phasis3.Gains(display.T3.index, DATA.Answers.Correction(Trial_number, 1) + 1);
         end
         
