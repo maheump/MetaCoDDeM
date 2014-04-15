@@ -1,0 +1,27 @@
+Zermatten, A., Van der Linden, M., Jermann, F., & Ceschi, G. (2006). Validation of a French version of the Obsessive–Compulsive Inventory-Revised in a non-clinical sample. Revue Européenne de Psychologie Appliquée/European Review of Applied Psychology, 56(3), 151–155. doi:10.1016/j.erap.2005.07.003
+
+Les énoncés suivants se rapportent à des expériences que de nombreuses personnes vivent dans leur quotidien. Pour chacun des énoncés indiquez à quel point l’expérience décrite vous a peiné ou dérangé durant le mois dernier.
+0 = ”Pas du tout”,
+1 = ”Peu”,
+2 = ”Moyennement”,
+3 = ”Beaucoup”,
+4 = ”Extrêmement”.
+
+1. J’ai conservé tellement de choses qu’elles bloquent le passage.
+2. Je vérifie les choses plus souvent que nécessaire.
+3. Je suis contrarié si les objets ne sont pas rangés correctement.
+4. Je me sens obligé de compter pendant que je fais des choses.
+5. J’éprouve de la difficulté à toucher un objet quand je sais qu’il a été touché par des étrangers ou par certaines personnes.
+6. J’éprouve de la difficulté à contrôler mes propres pensées.
+7. J’accumule des choses dont je n’ai pas besoin.
+8. Je vérifie de manière répétée les portes, les fenêtres, les tiroirs, etc.
+9. Je suis contrarié si les autres changent la manière dont j’ai rangé les choses.
+10. Je sens que je dois répéter certains chiffres.
+11. Je dois parfois me laver ou me nettoyer, simplement parce que je me sens contaminé.
+12. Je suis contrarié par des pensées déplaisantes qui me viennent à l’esprit contre ma volonté.
+13. J’évite de jeter les choses parce que je crains d’en avoir besoin plus tard.
+14. Je vérifie de manière répétée les robinets de gaz et d’eau ainsi que les interrupteurs après les avoir éteints.
+15. J’ai besoin que les choses soient rangées dans un ordre particulier.
+16. Je sens qu’il y a de bons et de mauvais chiffres.
+17. Je me lave les mains plus souvent et plus longtemps que nécessaire.
+18. J’ai fréquemment des pensées malsaines et j’ai de la difficulté à m’en débarrasser.

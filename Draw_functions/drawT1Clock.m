@@ -1,4 +1,4 @@
-function   display = drawT1Clock(display,step)
+function   display = drawT1Clock(display, step)
 
 % Calculate sizes in screen-coordinates
 sz_circle = angle2pix(display, display.T1.circle.size);
@@ -20,13 +20,13 @@ lyb = (display.center(2) - (sz_line/2) * sin(degtorad(display.T1.line.angle)));
 txa = lxb;
 tya = lyb;
 txb = (display.center(1) + ((sz_line - (sz_line*(sz_triangle/50)))/2) * cos(degtorad(display.T1.line.angle + sz_triangle)));
-tyb = (display.center(2) - ((sz_line - (sz_line*(sz_triangle/50)))/2) * sin(degtorad(display.T1.line.angle + sz_triangle)));%en fonction aire cercle
+tyb = (display.center(2) - ((sz_line - (sz_line*(sz_triangle/50)))/2) * sin(degtorad(display.T1.line.angle + sz_triangle))); % en fonction aire cercle
 txc = (display.center(1) + ((sz_line - (sz_line*(sz_triangle/50)))/2) * cos(degtorad(display.T1.line.angle - sz_triangle)));
 tyc = (display.center(2) - ((sz_line - (sz_line*(sz_triangle/50)))/2) * sin(degtorad(display.T1.line.angle - sz_triangle)));
 
 % Display instructions
-drawText(display, [0, (display.T1.circle.size - display.T1.circle.size/4)], 'Veuillez indiquer la direction du mouvement', [255 255 255], display.scale*4);
-drawText(display, [0, (display.T1.circle.size - display.T1.circle.size/4)*-1], '(Appuyer sur ESPACE pour valider votre choix)', [255 255 255], display.scale*2);
+drawText_MxM(display, [0, (display.T1.circle.size - display.T1.circle.size/4)], 'Veuillez indiquer la direction du mouvement', [255 255 255], display.scale*4);
+drawText_MxM(display, [0, (display.T1.circle.size - display.T1.circle.size/4)*-1], '(Appuyer sur ESPACE pour valider votre choix)', [255 255 255], display.scale*2);
 
 % Draw marks
 for i = 0:step:359

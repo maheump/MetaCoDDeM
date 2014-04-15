@@ -1,4 +1,4 @@
-function   display = drawText(display,center,str,col,size)
+function   display = drawText_MxM(display,center,str,col,size)
 % display = drawText(display,center,str,[col])
 % 
 % Draws text string 'str' centered at center = [x,y] in real-world coordinates. 
@@ -39,7 +39,7 @@ if ~isfield(display.text,'color')
     display.text.color = Screen(display.windowPtr,'TextColor');
 end
 
-display.text.size = size
+display.text.size = size;
 
 %Set the attributes and save the old ones
 oldStyle = Screen(display.windowPtr,'TextStyle',display.text.style);

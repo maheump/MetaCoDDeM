@@ -1,8 +1,7 @@
 MetaCoDDeM_project
 ================
 
-Behavioral and computational drivers of metacognitive control during multi-sampling decision-making.
-(Role of decisional variables and uncertainty monitoring on proactive information seeking)
+Behavioral and computational drivers of metacognitive control during multi-sampling decision-making (role of decisional variables and uncertainty monitoring on proactive information seeking).
 
 Author: Maxime Maheu
 Copyright (C) 2014

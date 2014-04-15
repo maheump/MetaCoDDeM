@@ -141,8 +141,8 @@ for frameNum=1:nFrames
     circ_coordinates = [display.center(1) - (sz_circle/2), display.center(2) - (sz_circle/2), display.center(1) + (sz_circle/2), display.center(2) + (sz_circle/2)];
     Screen('FrameArc', display.windowPtr, display.T1.circle.color, circ_coordinates, 0, 360, [display.T1.tick], [display.T1.tick]);
     
-    % If clock type answer (not to 2AFC)
-    if (design == 1)
+    % If clock type answer (not in 2AFC design)
+    if (design ~= 1)
         % Draw marks around the circle window
         for i = 0:step:359
             mxa = (display.center(1) + (sz_marks_a/2) * cos(degtorad(i)));
