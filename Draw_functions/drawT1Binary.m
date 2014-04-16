@@ -1,35 +1,47 @@
- function   display = drawT1Binary(display)
+function display = drawT1Binary(display, phasis, gains_P1, gains_P2, gains_P3)
 
 % Display instructions
-drawText_MxM(display, [0, (display.scale - display.scale/4)], 'Veuillez indiquer la direction du mouvement', [255, 255, 255], display.scale*4);
-drawText_MxM(display, [0, (display.scale - display.scale/4)*-1], '(Appuyer sur ESPACE pour valider votre choix)', [255, 255, 255], display.scale*2);
+drawText_MxM(display, [0, (display.scale/(4/3))], 'Veuillez indiquer la direction du mouvement', [255, 255, 255], (display.scale*4));
+drawText_MxM(display, [0, -(display.scale/(4/3))], '(Appuyer sur ESPACE pour valider votre choix)', [255, 255, 255], (display.scale*2));
+
+% Display gain matrix
+if (phasis == 1)
+    drawText_MxM(display, [0, -(display.scale/(25/8))], strcat('(', num2str(gains_P1(1, 1)), ')'), [255, 0, 0], (display.scale*2));
+    drawText_MxM(display, [0, -(display.scale/(100/37))], strcat('(+', num2str(gains_P1(1, 2)), ')'), [0, 255, 0], (display.scale*2));
+elseif (phasis == 2)
+    drawText_MxM(display, [0, -(display.scale/(25/8))], strcat('(', num2str(gains_P2(1, 1)), ')'), [255, 0, 0], (display.scale*2));
+    drawText_MxM(display, [0, -(display.scale/(100/37))], strcat('(+', num2str(gains_P2(1, 2)), ')'), [0, 255, 0], (display.scale*2));
+elseif (phasis == 3)
+    drawText_MxM(display, [0, -(display.scale/(25/8))], strcat('(', num2str(gains_P3(display.control, 1)), ')'), [255, 0, 0], (display.scale*2));
+    drawText_MxM(display, [0, -(display.scale/(100/37))], strcat('(+', num2str(gains_P3(display.control, 2)), ')'), [0, 255, 0], (display.scale*2));
+end
 
 % Draw 2AFC answers
 for i = -1:2:1
-    lxa = display.center(1) - angle2pix(display, i*(display.scale/5));
-    lxb = display.center(1) - angle2pix(display, i*(2*display.scale/5));
-    lya = display.center(2);
-    lyb = display.center(2);
-    Screen('DrawLine', display.windowPtr, display.T1.line.color, lxa, lya, lxb, lyb, [display.T1.tick]);
-    sz_triangle = angle2pix(display, (display.T1.triangle.size/20));
-    txa = lxb;
-    tya = lyb - (sz_triangle/2);
-    txb = lxb;
-    tyb = lyb + (sz_triangle/2);
-    txc = lxb + (-i)*(sz_triangle/2);
-    tyc = lyb;
-    Screen('FillPoly', display.windowPtr, display.T1.triangle.color, [txa, tya; txb, tyb; txc, tyc]);
+    lax = display.center(1) - angle2pix(display, i*(display.scale/5));
+    lay = display.center(2);
+    lbx = display.center(1) - angle2pix(display, i*(2*display.scale/5));
+    lby = display.center(2);
+    Screen('DrawLine', display.windowPtr, [255, 255, 255], lax, lay, lbx, lby, [display.tick]);
+    sz_triangle = angle2pix(display, (display.scale/20));
+    tax = lbx;
+    tay = lby - (sz_triangle/2);
+    tbx = lbx;
+    tby = lby + (sz_triangle/2);
+    tcx = lbx + (-i)*(sz_triangle/2);
+    tcy = lby;
+    Screen('FillPoly', display.windowPtr, [255, 255, 255], [tax, tay; tbx, tby; tcx, tcy]);
 end
 
 % Draw choice rectangle
 sz_rect = angle2pix(display, (display.scale/1.5));
-if display.T1.line.index == 1
-    x = display.center(1) - angle2pix(display, display.scale - (display.scale/1.45));
+if (display.index == 1)
+    x = display.center(1) - angle2pix(display, (display.scale/3.25));
     y = display.center(2);
     rect_coordinates = [x - (sz_rect/5), y - (sz_rect/12), x + (sz_rect/5), y + (sz_rect/12)];
     Screen('FrameRect', display.windowPtr, [255, 0, 0], rect_coordinates);
-elseif display.T1.line.index == 2
-    x = display.center(1) + angle2pix(display, display.scale - (display.scale/1.45));
+elseif (display.index == 2)
+    x = display.center(1) + angle2pix(display, (display.scale/3.25));
     y = display.center(2);
     rect_coordinates = [x - (sz_rect/5), y - (sz_rect/12), x + (sz_rect/5), y + (sz_rect/12)];
     Screen('FrameRect', display.windowPtr, [255, 0, 0], rect_coordinates);

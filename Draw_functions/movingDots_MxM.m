@@ -1,4 +1,4 @@
-function movingDots_MxM(display,dots,duration,step,design)
+function movingDots_MxM(display, dots, duration, step, design)
 % movingDots(display,dots,duration)
 %
 % Animates a field of moving dots based on parameters defined in the 'dots'
@@ -135,21 +135,21 @@ for frameNum=1:nFrames
     Screen('DrawDots',display.windowPtr,[pixpos.x(goodDots);pixpos.y(goodDots)], sizes(goodDots), colors(:,goodDots),[0,0],1);
     
     % Draw circle around the dots
-    sz_circle = angle2pix(display, display.T1.circle.size);
-    sz_marks_a = angle2pix(display, display.T1.line.size + (display.T1.line.size/20));
-    sz_marks_b = angle2pix(display, display.T1.line.size + (display.T1.line.size/10));
-    circ_coordinates = [display.center(1) - (sz_circle/2), display.center(2) - (sz_circle/2), display.center(1) + (sz_circle/2), display.center(2) + (sz_circle/2)];
-    Screen('FrameArc', display.windowPtr, display.T1.circle.color, circ_coordinates, 0, 360, [display.T1.tick], [display.T1.tick]);
+    sz_circle = angle2pix(display, display.scale);
+    sz_marks_a = angle2pix(display, display.scale + (display.scale/20));
+    sz_marks_b = angle2pix(display, display.scale + (display.scale/10));
+    cxy = [display.center(1) - (sz_circle/2), display.center(2) - (sz_circle/2), display.center(1) + (sz_circle/2), display.center(2) + (sz_circle/2)];
+    Screen('FrameArc', display.windowPtr, [255, 255, 255], cxy, 0, 360, [display.tick], [display.tick]);
     
     % If clock type answer (not in 2AFC design)
     if (design ~= 1)
         % Draw marks around the circle window
         for i = 0:step:359
-            mxa = (display.center(1) + (sz_marks_a/2) * cos(degtorad(i)));
-            mya = (display.center(2) + (sz_marks_a/2) * sin(degtorad(i)));
-            mxb = (display.center(1) + (sz_marks_b/2) * cos(degtorad(i)));
-            myb = (display.center(2) + (sz_marks_b/2) * sin(degtorad(i)));
-            Screen('DrawLine', display.windowPtr, display.T1.circle.color, mxa, mya, mxb, myb);
+            max = (display.center(1) + (sz_marks_a/2) * cos(degtorad(i)));
+            may = (display.center(2) + (sz_marks_a/2) * sin(degtorad(i)));
+            mbx = (display.center(1) + (sz_marks_b/2) * cos(degtorad(i)));
+            mby = (display.center(2) + (sz_marks_b/2) * sin(degtorad(i)));
+            Screen('DrawLine', display.windowPtr, [255, 255, 255], max, may, mbx, mby);
         end
     end
     

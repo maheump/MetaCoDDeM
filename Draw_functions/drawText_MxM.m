@@ -1,4 +1,4 @@
-function   display = drawText_MxM(display,center,str,col,size)
+function display = drawText_MxM(display,center,str,col,size)
 % display = drawText(display,center,str,[col])
 % 
 % Draws text string 'str' centered at center = [x,y] in real-world coordinates. 

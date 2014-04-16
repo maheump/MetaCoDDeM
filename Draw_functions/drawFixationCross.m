@@ -1,4 +1,4 @@
-function   display = drawFixationCross(display)
+function display = drawFixationCross(display)
 %display = drawFixation(display)
 %
 %Inserts a fixation point (smaller square inside a larger square) in the
