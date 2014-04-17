@@ -25,12 +25,16 @@
 clc;
 clear all;
 
+% Define in which context the task will be displayed (1: Individual testing, 2: LEEP testing, 3: Script test)
 DATA.Subject.Context = 3;
 
+% Save on which computer the subject performed the task
 DATA.Subject.Computer = java.net.InetAddress.getLocalHost;
 DATA.Subject.IP = char(DATA.Subject.Computer.getHostAddress);
 
-if (DATA.Subject.Context == 1) % Indivudal testing
+% If we are in an individual testing condition
+if (DATA.Subject.Context == 1)
+    % Manually enter subject information ...
     DATA.Subject.Number = randi(1000,1,1);
     DATA.Subject.Date = datestr(now);
     DATA.Subject.Group = upper(input('Subject group (HS/OCD/DLGG)? ', 's'));
@@ -38,33 +42,39 @@ if (DATA.Subject.Context == 1) % Indivudal testing
     DATA.Subject.Initials = upper(input('Subject initials? ', 's'));
     DATA.Subject.Handedness = upper(input('Subject handedness (L/R)? ', 's'));
     DATA.Subject.Gender = upper(input('Subject gender (M/F)? ', 's'));
-    
+    % ... and design information
     DATA.Subject.Design = input('Design (1 for 2AFC and 2 for clockFC)? ');
     DATA.Subject.Optimization = input('Design optimization (1 for Yes and 0 for No)? ');
     DATA.Subject.Phasis = 123; % input('Phasis (123/12/13/23/3)? ');
     DATA.Subject.Phasis_list = char(num2str(sort(DATA.Subject.Phasis))) - 48;
-    if (any(DATA.Subject.Phasis_list == 1) == 0) % If the phasis 1 is skipped then provide psychometric parameters
+    % If the phasis 1 is skipped then provide psychometric parameters
+    if (any(DATA.Subject.Phasis_list == 1) == 0)
         DATA.Fit.Psychometric.SigFit(1) = str2double(input('Mu? '));
         DATA.Fit.Psychometric.SigFit(2) = str2double(input('Sigma? '));
     end
     
-elseif (DATA.Subject.Context == 2) % LEEP testings
-    DATA.Subject.Number = DATA.Subject.IP(length(DATA.Subject.IP) - 1:length(DATA.Subject.IP)); % Get IP adress and save the last two digits
+% If the testings are made at the LEEP
+elseif (DATA.Subject.Context == 2)
+    % Save the last two digits of the IP address
+    DATA.Subject.Number = DATA.Subject.IP(length(DATA.Subject.IP) - 1:length(DATA.Subject.IP));
     DATA.Subject.Date = datestr(now);
+    % Do not record any information about the subject (already provide by the initial questionnaire
     DATA.Subject.Group = 'HS';
     DATA.Subject.Age = NaN;
     DATA.Subject.Initials = 'LEEP';
     DATA.Subject.Handedness = 'NaN';
     DATA.Subject.Gender = 'NaN';
-
+    % Display the 2AFC design with bayesian optimisation
     DATA.Subject.Design = 1;
     DATA.Subject.Optimization = 1;
     DATA.Subject.Phasis = 123;
     DATA.Subject.Phasis_list = char(num2str(sort(DATA.Subject.Phasis))) - 48;
     
-elseif (DATA.Subject.Context == 3) % Test
+% If it is a test of the script
+elseif (DATA.Subject.Context == 3)
+    % Set a diary
     diary 'MetaCoDDeM_diary.txt';
-    
+    % Do not record any information about the subject
     DATA.Subject.Number = DATA.Subject.IP(length(DATA.Subject.IP) - 1:length(DATA.Subject.IP)); % Get IP adress and save the last two digits
     DATA.Subject.Date = datestr(now);
     DATA.Subject.Group  = 'TEST';
@@ -72,15 +82,16 @@ elseif (DATA.Subject.Context == 3) % Test
     DATA.Subject.Initials = 'TEST';
     DATA.Subject.Handedness = 'NaN';
     DATA.Subject.Gender = 'NaN';
-
+    % Display the 2AFC design without bayesian optimisation
     DATA.Subject.Design = 1;
     DATA.Subject.Optimization = 0;
     DATA.Subject.Phasis = 123;
     DATA.Subject.Phasis_list = char(num2str(sort(DATA.Subject.Phasis))) - 48;
 end
 
+% Define a file name and create a directory for the subject data
 DATA.Files.Name = ['MetaCoDDeM_' num2str(DATA.Subject.Group) '_' DATA.Subject.Initials '_' num2str(DATA.Subject.Number)];
-mkdir(DATA.Files.Name); % Create the subject folder
+mkdir(DATA.Files.Name);
 
 %% Define task parameters
 
@@ -98,27 +109,6 @@ keys.right = KbName('RightArrow');
 keys.left = KbName('LeftArrow');
 keys.space = KbName('space');
 
-% Set paradigm parameters
-if (DATA.Subject.Design == 1)
-    DATA.Paradigm.Step = 180; % Margin between the 2 alternative fored-choice
-elseif (DATA.Subject.Design == 1)
-    DATA.Paradigm.Step = 15; % Margin between dots orientation and between clock ticks
-end
-display.scale = 10;
-display.tick = display.scale/2;
-display.rect = display.scale;
-
-% Set a correponding table between dots angle (classic) and line angle (trigonometric)
-if (DATA.Subject.Design == 1) % If it is a 2AFC design
-    display.table = [270, 90];
-elseif (DATA.Subject.Design == 2) % If it is a "clock" design
-    display.table_a = 0:DATA.Paradigm.Step:359;
-    display.table_b = 90:-DATA.Paradigm.Step:0;
-    displat.table_c = 360:-DATA.Paradigm.Step:91;
-    displat.table_c(:, 1) = [];
-    display.table = [display.table_a; display.table_b, displat.table_c];
-end
-
 % Set display parameters
 display.screenNum = max(Screen('Screens'));
 display.bkColor = colors.black;
@@ -126,7 +116,32 @@ display.dist = 60; % cm
 display.width = 30; % cm
 display.skipChecks = 1; % Avoid Screen's timing checks and verbosity
 
-% Set up dot parameters
+% Set paradigm parameters
+if (DATA.Subject.Design == 1)
+    % Margin between the 2 alternative fored-choice
+    DATA.Paradigm.Step = 180;
+elseif (DATA.Subject.Design == 1)
+    % Margin between dots orientation and between clock ticks
+    DATA.Paradigm.Step = 15;
+end
+display.scale = 10;
+display.tick = display.scale/2;
+display.rect = display.scale;
+
+% Set a correponding table between dots angle (classic) and line angle (trigonometric)
+% If it is a 2AFC design
+if (DATA.Subject.Design == 1)
+    display.table = [270, 90];
+% If it is a "clock" design
+elseif (DATA.Subject.Design == 2)
+    display.table_a = 0:DATA.Paradigm.Step:359;
+    display.table_b = 90:-DATA.Paradigm.Step:0;
+    displat.table_c = 360:-DATA.Paradigm.Step:91;
+    displat.table_c(:, 1) = [];
+    display.table = [display.table_a; display.table_b, display.table_c];
+end
+
+% Define dot parameters
 dots.nDots = round(1.5*(2*pi*((display.scale/2)^2))); % Calculate the number of dots based on the aperture size
 dots.speed = 5;
 dots.lifetime = 12;
@@ -136,37 +151,62 @@ dots.color = colors.white;
 dots.size = 5;
 dots.duration = 0.750; % miliseconds
 
-% Set the parameters for the phasis 1 (calibration phasis)
-DATA.Paradigm.Phasis1.Trials = 100; % Temporary define a certain number of trials (the bayesian optimization will reduce it later)
-if (DATA.Subject.Optimization == 0) % If the bayesian optimization is not activate, then screen the possible coherence levels window
+%% Define phasis parameters
+
+% For phasis 1 (calibration phasis),
+
+% Temporary define a certain number of trials (the bayesian optimization will reduce it later)
+DATA.Paradigm.Phasis1.Trials = 100;
+% If the bayesian optimization is not activate, then screen the possible coherence levels window
+if (DATA.Subject.Optimization == 0)
+    % Define the step
     DATA.Paradigm.Phasis1.Coherences_margin = 0.1;
-    DATA.Paradigm.Phasis1.Coherences_level = 0.1:DATA.Paradigm.Phasis1.Coherences_margin:(1 - DATA.Paradigm.Phasis1.Coherences_margin); % Define the list of coherence levels
-    DATA.Paradigm.Phasis1.Coherences_level = transpose(DATA.Paradigm.Phasis1.Coherences_level); % Transform it into a column
-    DATA.Paradigm.Phasis1.Coherences_number = 15; % Number of trials per coherence level
+    % Define all the coherences level to display
+    DATA.Paradigm.Phasis1.Coherences_level = 0.1:DATA.Paradigm.Phasis1.Coherences_margin:(1 - DATA.Paradigm.Phasis1.Coherences_margin);
+    % Transform it into a column
+    DATA.Paradigm.Phasis1.Coherences_level = transpose(DATA.Paradigm.Phasis1.Coherences_level);
+    % Set a number of trials per coherence level
+    DATA.Paradigm.Phasis1.Coherences_number = 15;
+    % If we are in the test context, display only one trial per coherence level
     if (DATA.Subject.Context == 3)
         DATA.Paradigm.Phasis1.Coherences_number = 1;
     end
-    DATA.Paradigm.Phasis1.Coherences = repmat(DATA.Paradigm.Phasis1.Coherences_level, DATA.Paradigm.Phasis1.Coherences_number, 1); % Repeat each coherence level a certain number of time
-    DATA.Paradigm.Phasis1.Coherences = DATA.Paradigm.Phasis1.Coherences(randperm(length(DATA.Paradigm.Phasis1.Coherences)), 1); % Randomly shuffle it
-    DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1); % The phasis 1 total number of trials is the size of this coherence list
+    % Repeat each coherence level a certain number of time (the number of trials per coherence level basically)
+    DATA.Paradigm.Phasis1.Coherences = repmat(DATA.Paradigm.Phasis1.Coherences_level, DATA.Paradigm.Phasis1.Coherences_number, 1);
+    % Randomly shuffle it
+    DATA.Paradigm.Phasis1.Coherences = DATA.Paradigm.Phasis1.Coherences(randperm(length(DATA.Paradigm.Phasis1.Coherences)), 1);
+    % Get the total number of trials in the first phasis
+    DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1);
 end
 
-% Set the parameters for the phasis 2 (evidence accumulation phasis)
-DATA.Paradigm.Phasis2.Viewing_number = 2; % Define the maximum number of time a RDK will be displayed
-DATA.Paradigm.Phasis2.Facility_levels = [-1, 0, 0.05, 0.10, 0.15]; % Define the increasing facility indexes
-DATA.Paradigm.Phasis2.Accuracies_number = 10; % Define the number of trials per accuracy level
+% For phasis 2 (evidence accumulation phasis),
+
+% Define the maximum number of time a RDK will be displayed
+DATA.Paradigm.Phasis2.Viewing_number = 2;
+% Define the increasing facility indexes
+DATA.Paradigm.Phasis2.Facility_levels = [-1, 0, 0.05, 0.10, 0.15];
+% Define the number of trials per accuracy level
+DATA.Paradigm.Phasis2.Accuracies_number = 10;
+% If we are in the test context, display only one trial per accuracy level
 if (DATA.Subject.Context == 3)
     DATA.Paradigm.Phasis2.Accuracies_number = 1;
 end
-% Faire avec 3 des niveaux de performance testés en phase 3
-DATA.Paradigm.Phasis2.Accuracies_levels = [0.10, 0.425, 0.75]; % Define the initial wanted performance (before increasing facility index) for one set of increasing difficulty indes
-DATA.Paradigm.Phasis2.Accuracies = repmat(DATA.Paradigm.Phasis2.Accuracies_levels, 1, size(DATA.Paradigm.Phasis2.Facility_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number); % Define the initial wanted performance (before increasing facility index) for the total number of trials
-DATA.Paradigm.Phasis2.Accuracies = transpose(DATA.Paradigm.Phasis2.Accuracies); % Transform it into a column
-DATA.Paradigm.Phasis2.Accuracies = DATA.Paradigm.Phasis2.Accuracies(randperm(length(DATA.Paradigm.Phasis2.Accuracies)), 1); % Randomly shuffle it
-DATA.Paradigm.Phasis2.Facilities = repmat(DATA.Paradigm.Phasis2.Facility_levels, 1, size(DATA.Paradigm.Phasis2.Accuracies_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number); % Define all the increasing facility index (for each trial)
-DATA.Paradigm.Phasis2.Facilities = transpose(DATA.Paradigm.Phasis2.Facilities); % Transform it into a column
-DATA.Paradigm.Phasis2.Facilities = DATA.Paradigm.Phasis2.Facilities(randperm(length(DATA.Paradigm.Phasis2.Facilities)), 1); % Randomly shuffle it
-for i = 1:1:size(DATA.Paradigm.Phasis2.Accuracies) % Make a table of (i) basal performance level, (ii) increasing facility index, and (iii) final performance
+% Define the initial wanted performance (before increasing facility index) for one set of increasing difficulty indes
+DATA.Paradigm.Phasis2.Accuracies_levels = [0.10, 0.425, 0.75];
+% Define the initial wanted performance (before increasing facility index) for the total number of trials
+DATA.Paradigm.Phasis2.Accuracies = repmat(DATA.Paradigm.Phasis2.Accuracies_levels, 1, size(DATA.Paradigm.Phasis2.Facility_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number);
+% Transform it into a column
+DATA.Paradigm.Phasis2.Accuracies = transpose(DATA.Paradigm.Phasis2.Accuracies);
+% Randomly shuffle it
+DATA.Paradigm.Phasis2.Accuracies = DATA.Paradigm.Phasis2.Accuracies(randperm(length(DATA.Paradigm.Phasis2.Accuracies)), 1);
+% Define all the increasing facility index (for each trial)
+DATA.Paradigm.Phasis2.Facilities = repmat(DATA.Paradigm.Phasis2.Facility_levels, 1, size(DATA.Paradigm.Phasis2.Accuracies_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number);
+% Transform it into a column
+DATA.Paradigm.Phasis2.Facilities = transpose(DATA.Paradigm.Phasis2.Facilities);
+% Randomly shuffle it
+DATA.Paradigm.Phasis2.Facilities = DATA.Paradigm.Phasis2.Facilities(randperm(length(DATA.Paradigm.Phasis2.Facilities)), 1);
+% Make a table of (i) basal performance level, (ii) increasing facility index, and (iii) final performance
+for i = 1:1:size(DATA.Paradigm.Phasis2.Accuracies)
     DATA.Paradigm.Phasis2.Performances(i,1) = DATA.Paradigm.Phasis2.Accuracies(i);
     DATA.Paradigm.Phasis2.Performances(i,2) = DATA.Paradigm.Phasis2.Facilities(i);
     if (DATA.Paradigm.Phasis2.Facilities(i) ~= -1)
@@ -175,18 +215,26 @@ for i = 1:1:size(DATA.Paradigm.Phasis2.Accuracies) % Make a table of (i) basal p
         DATA.Paradigm.Phasis2.Performances(i,3) = DATA.Paradigm.Phasis2.Accuracies(i);
     end
 end
-DATA.Paradigm.Phasis2.Trials = size(DATA.Paradigm.Phasis2.Performances, 1); % Get the total number of trials in the second phasis
+% Get the total number of trials in the second phasis
+DATA.Paradigm.Phasis2.Trials = size(DATA.Paradigm.Phasis2.Performances, 1);
 
-% Set the parameters for the phasis 3 (information seeking phasis)
-DATA.Paradigm.Phasis3.Accuracies_number = 10; % Define the number of trials per accuracy level
+% For phasis 3 (information seeking phasis)
+% Define the number of trials per accuracy level
+DATA.Paradigm.Phasis3.Accuracies_number = 10;
+% If we are in the test context, display only one trial per accuracy level
 if (DATA.Subject.Context == 3)
     DATA.Paradigm.Phasis3.Accuracies_number = 1;
 end
-DATA.Paradigm.Phasis3.Accuracies_levels = 0.1:((1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels)))-0.1)/15:(1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels))); % Define the accuracy levels we want to test
-DATA.Paradigm.Phasis3.Accuracies = repmat(DATA.Paradigm.Phasis3.Accuracies_levels, 1, DATA.Paradigm.Phasis3.Accuracies_number); % Define the accuracy levels we want to test for the total number of trials
-DATA.Paradigm.Phasis3.Accuracies = transpose(DATA.Paradigm.Phasis3.Accuracies); % Transform it into a column
-DATA.Paradigm.Phasis3.Performances = DATA.Paradigm.Phasis3.Accuracies(randperm(length(DATA.Paradigm.Phasis3.Accuracies)), 1); % Randomly shuffle it
-DATA.Paradigm.Phasis3.Trials = size(DATA.Paradigm.Phasis3.Performances, 1); % Get the total number of trials in the third phasis
+% Define the accuracy levels we want to test
+DATA.Paradigm.Phasis3.Accuracies_levels = 0.1:((1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels)))-0.1)/15:(1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels)));
+% Replicate it by the total number of trials
+DATA.Paradigm.Phasis3.Accuracies = repmat(DATA.Paradigm.Phasis3.Accuracies_levels, 1, DATA.Paradigm.Phasis3.Accuracies_number);
+% Transform it into a column
+DATA.Paradigm.Phasis3.Accuracies = transpose(DATA.Paradigm.Phasis3.Accuracies);
+% Randomly shuffle it
+DATA.Paradigm.Phasis3.Performances = DATA.Paradigm.Phasis3.Accuracies(randperm(length(DATA.Paradigm.Phasis3.Accuracies)), 1);
+% Get the total number of trials in the third phasis
+DATA.Paradigm.Phasis3.Trials = size(DATA.Paradigm.Phasis3.Performances, 1);
 
 % Get the total number of trials
 DATA.Paradigm.Trials = DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials;
@@ -201,7 +249,7 @@ DATA.Points.Initial = 5000; % Define the initial gain
 DATA.Points.Matrix.Phasis1 = [-20, 20]; % Define the gain matrix for phasis 1
 DATA.Points.Matrix.Phasis2 = [-50, 50]; % Define the gain matrix for phasis 2
 DATA.Points.Matrix.Phasis3 = [-200, 100; -80, 80; -70, 70; -60, 60; -50, 50]; % Define the gain matrix for phasis 3
-DATA.Points.Matrix.Confidence = [-50, 100]; % Define the gain matrix for condidence steps
+DATA.Points.Matrix.Confidence = [-100, 50]; % Define the gain matrix for condidence steps
 
 % Compute the maximum amount of points a subject can win
 DATA.Points.Maximum = DATA.Points.Initial + ...
@@ -218,8 +266,10 @@ try
       
     % Set the first phasis
     Phasis_number = 1;
+    
+    % For each trial
+    for Trial_number = 1:1:DATA.Paradigm.Trials
         
-    for Trial_number = 1:1:DATA.Paradigm.Trials % Faire un while avec les training trials en plus
         % Get the direction of the stimulus
         dots.direction = DATA.Paradigm.Directions(Trial_number, 1);
 
@@ -239,8 +289,9 @@ try
 
         %% Display the stimulus 
 
-        % For the phasis 1, if the bayesian optimization is activate, define the most informative dots motion coherence
+        % For phasis 1
         if (Phasis_number == 1)
+            % If the bayesian optimization is activate
             if (DATA.Subject.Optimization == 1)
                     if (Trial_number == 1)
                         a = 0;
@@ -250,27 +301,27 @@ try
                     % If we reach the threshold, end the first phasis
                     if (z < 0.05) && (x < 0.05)
                         DATA.Paradigm.Phasis1.Trials = Trial_number;
-                        
-                        % A priori inutile car pas besoin de définir quoi que ce soit
                         % Mettre à jour les variables de la Phase 1 en supprimant les lignes
                         % DATA.Paradigm.Phasis1.Coherences(DATA.Paradigm.Phasis1.Trials:length(DATA.Paradigm.Phasis1.Coherences)) = [];
-                        
+                        % define the most informative dots motion coherence
                     end
                 % Find the most informative coherence level
                 DATA.Paradigm.Phasis1.Coherences(Trial_number) = OptimDesign([], g_fname, dim, opt, u(1),'parameters', DATA.Subject.Design);
             end
             dots.coherence = DATA.Paradigm.Phasis1.Coherences(Trial_number);
 
-        % For the phasis 2, get a coherence level according to a given performance
+        % For phasis 2,
         elseif (Phasis_number == 2)
+            % Get a coherence level according to a given performance
             syms Target_coherence
             DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) ...
                 = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) ...
                 == DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 1)));
             dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
 
-        % For the phasis 3, get a coherence level according to a given performance
+        % For phasis 3,
         elseif (Phasis_number == 3)
+            % Get a coherence level according to a given performance
             syms Target_coherence
             DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) ...
                 = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) ...
@@ -286,9 +337,7 @@ try
         movingDots_MxM(display, dots, dots.duration, DATA.Paradigm.Step, DATA.Subject.Design);
 
         % Black screen during 200 milisecond
-        Screen('FillOval', display.windowPtr, display.bkColor);
-        Screen('Flip',display.windowPtr);
-        waitTill(0.2);
+        drawBlackScreen(display, 0.2);
 
         % For each review
         for Review = 2:1:DATA.Paradigm.Phasis2.Viewing_number
@@ -302,6 +351,7 @@ try
                     = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) ...
                     == DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 3)));
                 dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3);
+                
                 % Save the difference between the first sample coherence and the second sample one
                 DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 2) ...
                     = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) - DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);                
@@ -312,13 +362,11 @@ try
 
                 % Show the stimulus
                 movingDots_MxM(display, dots, dots.duration, DATA.Paradigm.Step, DATA.Subject.Design);
-
+                
                 % Black screen during 200 milisecond
-                Screen('FillOval', display.windowPtr, display.bkColor);
-                Screen('Flip',display.windowPtr);
-                waitTill(0.2);
+                drawBlackScreen(display, 200);
             
-            % If we do not have to display a second sample of stimulus
+            % If we did not have to display a second sample of stimulus, update the coherences lists
             elseif (Phasis_number == 2) && (isnan(DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 2)) == 1)
                 DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 2) = NaN;
                 DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
@@ -327,15 +375,17 @@ try
 
         %% Type II answer (control)
 
+        % For phasis 3
         if (Phasis_number == 3)
-            % Display choice
             display.control = 1;
             startTime = GetSecs;
             while true
-                % Check the keys press
                 [keyIsDown, timeSecs, keyCode] = KbCheck;
+                
                 % Display proactive information seeking window
                 drawT3Info(display, display.control, DATA.Points.Matrix.Phasis3);
+                
+                % Check the keys press
                 if keyIsDown
                     
                     % If subject needs additional information, get the easiness increasing level he choose
@@ -345,7 +395,7 @@ try
                         display.control = display.control + 1;
                     end
 
-                    % Precautions about the cursor
+                    % Define some precautions about the cursor
                     if (display.control < 1)
                         display.control = 1;
                     elseif (display.control > 5)
@@ -354,20 +404,24 @@ try
 
                     % Get the information seeking level (easiness increasing)
                     if keyCode(keys.space)
+                        
                         % Get the metacognitive control reaction time
                         DATA.Answers.RT3brut(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = (timeSecs - startTime)*100;
+                        
                         % If the subject has choosen not to see a new stimulus sample
                         if (display.control == 1)
-                            % 
+                            % Update the targetted performance level
                             DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) = -1;
                             DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1);
-                        % If the subject has choosen to see a new stimulus sample
+                        
+                            % If the subject has choosen to see a new stimulus sample
                         elseif (display.control == 2 || 3 || 4 || 5)
-                            % Update the targetted performance level
+                            % Update the targetted performance level lists
                             DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) = DATA.Paradigm.Phasis2.Facility_levels(display.control);
                             DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) ...
                                 = DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) + DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2);
                         end
+                        
                         waitTill(0.2);
                         break;
                     end
@@ -375,9 +429,10 @@ try
                 end
             end
 
-            % Compute control RT (weighted according to the initial position of the cursor)
+            % If control answer is not different from the initial position of the cursor, do not correct the reaction time
             if (display.control == 1)
                 DATA.Answers.RT3corr(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = DATA.Answers.RT3brut(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1);
+            % Otherwise, correct it based on its distance from the initial position of the cursor
             elseif (display.control ~= 1)
                 DATA.Answers.RT3corr(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = DATA.Answers.RT3brut(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1)/abs(1 - display.control);
             end
@@ -397,6 +452,7 @@ try
                     = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) ...
                     == DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3)));
                 dots.coherence = DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3);
+                
                 % Save the difference between the first sample coherence and the second sample one
                 DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) ...
                     = DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) - DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1);
@@ -409,39 +465,49 @@ try
                 movingDots_MxM(display, dots, dots.duration, DATA.Paradigm.Step, DATA.Subject.Design);
             end
             
+            % Black screen during 200 milisecond
             drawBlackScreen(display, 200);
         end
 
         %% Type I answer
 
-        % Get the response
+        % For 2AFC design
         if (DATA.Subject.Design == 1)
+            % At the beginning, do not show any cursor
             display.index = 0;
             DATA.Answers.Initial_Direction(Trial_number, 1) = 0;
+        % For "clock" design
         elseif (DATA.Subject.Design == 2)
+            % At the beginning, set the array at 0°
             display.index = 1; % Column number
             display.line = display.table(2, display.index); % Correspondant
             DATA.Answers.Initial_Direction(Trial_number, 1) = display.line;
         end
-        startTime = GetSecs;
         
+        startTime = GetSecs;
         while true
-            % Check the keys press
             [keyIsDown, timeSecs, keyCode] = KbCheck;
             
-            % For 2AFC design, update the cursor according to key press
+            % For 2AFC design
             if (DATA.Subject.Design == 1)
+                % Update the cursor according to key press
                 drawT1Binary(display, Phasis_number, DATA.Points.Matrix.Phasis1, DATA.Points.Matrix.Phasis2, DATA.Points.Matrix.Phasis3);
-            % For "clock" design, update the arrow according to key press
+            % For "clock" design
             elseif (DATA.Subject.Design == 2)
+                % Update the arrow according to key press
                 drawT1Clock(display, DATA.Paradigm.Step, Phasis_number, DATA.Points.Matrix.Phasis1, DATA.Points.Matrix.Phasis2, DATA.Points.Matrix.Phasis3);
             end
 
+            % Check the keys press
             if keyIsDown
+                
+              % If the right arrow is pressed
               if keyCode(keys.right)
+                  % For 2AFC design,
                     if (DATA.Subject.Design == 1)
-                        % Set right answer
+                        % Choose right answer
                         display.index = 2;
+                    % For "clock" design
                     elseif (DATA.Subject.Design == 2)
                         % Increase angle with 1 step
                         display.index = display.index + 1;
@@ -451,10 +517,13 @@ try
                         display.line = display.table(2, display.index); 
                     end
 
+                % If the left arrow is pressed
                 elseif keyCode(keys.left)
+                    % For 2AFC design
                     if (DATA.Subject.Design == 1)
-                        % Set left answer
+                        % Choose left answer
                         display.index = 1;
+                    % For "clock" design,
                     elseif (DATA.Subject.Design == 2)
                         % Decrease angle with minus 1 step
                         display.index = display.index - 1;
@@ -464,6 +533,7 @@ try
                         display.line = display.table(2, display.index); 
                     end
 
+                % If space key is pressed
                 elseif keyCode(keys.space)
                     if (display.index ~= 0)
                         % Get the perceptual reaction time
@@ -474,19 +544,25 @@ try
                         break;
                     end
               end
+              
               waitTill(0.05);  
             end
         end
 
-        % Compute perceptual RT (weighted according to the initial direction)
-        if DATA.Answers.Initial_Direction(Trial_number, 1) ~= DATA.Answers.Direction(Trial_number, 1)
-            if (DATA.Subject.Design == 1) % For 2AFC design, do not correct RTs
+        % If perceptual answer is not different from the initial position of the cursor, do not correct the reaction time
+        if DATA.Answers.Initial_Direction(Trial_number, 1) == DATA.Answers.Direction(Trial_number, 1)
+            DATA.Answers.RT1corr(Trial_number, 1) = DATA.Answers.RT1brut(Trial_number, 1);
+        % If perceptual answer is different from the initial position of the cursor
+        elseif DATA.Answers.Initial_Direction(Trial_number, 1) ~= DATA.Answers.Direction(Trial_number, 1)
+            % For 2AFC design
+            if (DATA.Subject.Design == 1)
+                % Do not correct the reaction time
                 DATA.Answers.RT1corr(Trial_number, 1) = DATA.Answers.RT1brut(Trial_number, 1);
-            elseif (DATA.Subject.Design == 2) % For "clock" design
+            % For "clock" design
+            elseif (DATA.Subject.Design == 2)
+                % Correct the reaction time based on its distance from the initial position of the arrow
                 DATA.Answers.RT1corr(Trial_number, 1) = DATA.Answers.RT1brut(Trial_number, 1)/abs(DATA.Answers.Initial_Direction(Trial_number, 1) - DATA.Answers.Direction(Trial_number, 1));
             end
-        elseif DATA.Answers.Initial_Direction(Trial_number, 1) == DATA.Answers.Direction(Trial_number, 1)
-            DATA.Answers.RT1corr(Trial_number, 1) = DATA.Answers.RT1brut(Trial_number, 1);
         end
 
         % For 2AFC design, compute perceptual performance and classify the answer according to signal detection theory
@@ -512,16 +588,18 @@ try
                 DATA.Answers.Label(Trial_number, 1) = 4; % Correct rejection
             end
 
-        % For "clock" design, compute simply perceptual performance
+        % For "clock" design, simply compute perceptual performance
         elseif (DATA.Subject.Design == 2)
+            % If the answer is equal to the actual direction, save 1
             if DATA.Paradigm.Directions(Trial_number, 1) == DATA.Answers.Direction(Trial_number, 1)
                 DATA.Answers.Correction(Trial_number, 1) = 1;
+            % If it is not, save 0
             elseif DATA.Paradigm.Directions(Trial_number, 1) ~= DATA.Answers.Direction(Trial_number, 1)
                 DATA.Answers.Correction(Trial_number, 1) = 0;
             end
         end
 
-        % Get the amount of gain
+        % Get the amount of "perceptual" gain
         if (Phasis_number == 1)
             % Find the gain in the phasis 1 gain matrix, thanks to correction
             DATA.Points.Counter.Type_I(Trial_number, 1) = DATA.Points.Matrix.Phasis1(DATA.Answers.Correction(Trial_number, 1) + 1);
@@ -532,29 +610,30 @@ try
             % Find the gain in the phasis 3 gain matrix, thanks to correction and easiness level
             DATA.Points.Counter.Type_I(Trial_number, 1) = DATA.Points.Matrix.Phasis3(display.control, DATA.Answers.Correction(Trial_number, 1) + 1);
         end
-
+        
         % Black screen during 200 milisecond
-        Screen('FillOval', display.windowPtr, display.bkColor);
-        Screen('Flip',display.windowPtr);
-        waitTill(0.2);
+        drawBlackScreen(display, 200);
 
         %% Type II answer (monitoring)
 
         % If phasis 2 or 3 is displayed
         if (Phasis_number ~= 1) 
-            display.rect = 0;
+            
             % Set the initial position to the center of the scale
-            DATA.Answers.Initial_Confidence(Trial_number, 1) = round(((display.rect + display.scale) / (2 * display.scale)) * 100);
+            display.rect = 0;
+            DATA.Answers.Initial_Confidence(Trial_number, 1) = round(((display.rect + display.scale)/(2*display.scale))*100);
+            
             startTime = GetSecs;
-
             while true
-                % Check the keys press
                 [keyIsDown, timeSecs, keyCode] = KbCheck;
                 
                 % Update the red rectangle according to key press
                 drawT2Rect(display, DATA.Points.Matrix.Confidence);
+                
+                % Check the keys press
                 if keyIsDown
 
+                        % If the right arrow is pressed
                         if keyCode(keys.right)
                             % Increase confidence score with +1%
                             display.rect = display.rect + ((2*display.scale)/100);
@@ -562,6 +641,7 @@ try
                                 display.rect = display.scale;
                             end
 
+                        % If the left arrow is pressed
                         elseif keyCode(keys.left)
                             % Decrease confidence score with -1%
                             display.rect = display.rect - ((2*display.scale)/100);
@@ -569,6 +649,7 @@ try
                                 display.rect = -display.scale;
                             end
 
+                         % If space key is pressed
                          elseif keyCode(keys.space)
                             % Get the metacognitive monitoring reaction time
                             DATA.Answers.RT2brut(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = (timeSecs - startTime)*100;
@@ -580,37 +661,50 @@ try
                 end
             end
 
-            % Compute monitoring RT (weighted according to the initial confidence)
-            if (DATA.Answers.Initial_Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) ~= DATA.Answers.Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1))
+            % If confidence answer is not different from the initial position of the cursor, do not correct reaction time
+            if (DATA.Answers.Initial_Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) == DATA.Answers.Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1))
+                DATA.Answers.RT2corr(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Answers.RT2brut(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
+            % If confidence answer is different from the initial position of the cursor, correct reaction time based on its distance from the initial position of the cursor
+            elseif (DATA.Answers.Initial_Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) ~= DATA.Answers.Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1))
                 DATA.Answers.RT2corr(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) ...
                     = DATA.Answers.RT2brut(Trial_number - DATA.Paradigm.Phasis1.Trials, 1)/abs(DATA.Answers.Initial_Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) - DATA.Answers.Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1));
-            elseif (DATA.Answers.Initial_Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) == DATA.Answers.Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1))
-                DATA.Answers.RT2corr(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Answers.RT2brut(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
             end
 
-            % Get gains based on confidence
-            DATA.Points.Tickets.First (Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = randi([40, 100]); % Get a first ticket (between 40 and 100)
-            DATA.Points.Tickets.Second(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = randi([1, 100]); % Get a second ticket (between 1 and 100)
-            % Compare confidence to first ticket
+            % Get the amount of "confidence" gains
+            
+            % Get a first ticket (between 40 and 100)
+            DATA.Points.Tickets.First (Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = randi([40, 100]);
+            % Get a second ticket (between 1 and 100)
+            DATA.Points.Tickets.Second(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = randi([1, 100]);
+            % If confidence is bigger than the first random ticket
             if (DATA.Answers.Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) >= DATA.Points.Tickets.First(Trial_number - DATA.Paradigm.Phasis1.Trials, 1))
-                DATA.Points.Tickets.Lottery(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Answers.Correction(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
+                % The lottery ticket is the subject confidence
+                DATA.Points.Tickets.Lottery(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Answers.Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
+            % If confidence is smaller than the first random ticket
             elseif (DATA.Answers.Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) < DATA.Points.Tickets.First(Trial_number - DATA.Paradigm.Phasis1.Trials, 1))
+                % The lottery ticket is the first random ticket
                 DATA.Points.Tickets.Lottery(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Points.Tickets.First(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
             end
-            % Compare the DATA.Points.Tickets.Lottery to a random ticket
+            % If the ticket lottery is bigger than the second random ticket
             if (DATA.Points.Tickets.Lottery(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) >= DATA.Points.Tickets.Second(Trial_number - DATA.Paradigm.Phasis1.Trials, 1))
+                % Loose points
                 DATA.Points.Counter.Type_II(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Points.Matrix.Confidence(1);
+            % If the ticket lottery is smaller than the second random ticket
             elseif (DATA.Points.Tickets.Lottery(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) < DATA.Points.Tickets.Second(Trial_number - DATA.Paradigm.Phasis1.Trials, 1))
+                % Win points
                 DATA.Points.Counter.Type_II(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Points.Matrix.Confidence(2);
             end
         end
 
         %% Display a break screen
 
+        % If we are in the middle of phasis 2 or phasis 3
         if (Trial_number - DATA.Paradigm.Phasis1.Trials) == round(DATA.Paradigm.Phasis2.Trials/2) || (Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials) == round(DATA.Paradigm.Phasis3.Trials/2)
+            % Display the break screen
             drawText_MxM(display, [0, (display.scale/5)], 'Faîtes une pause d''une ou deux minutes', colors.white, (display.scale*4));
             drawText_MxM(display, [0, -(display.scale/5)], '(Appuyez sur n''importe quelle touche pour continuer)', colors.white, (display.scale*2));
             Screen('Flip',display.windowPtr);
+            % Wait for key press
             while KbCheck; end
             KbWait;
         end
@@ -618,15 +712,18 @@ try
         %% Psychometric fit
 
         if (Phasis_number == 1) && (Trial_number == DATA.Paradigm.Phasis1.Trials)
-            % Make the subject waits while fitting the psychometric curve
+            
+            % Black screen during 200 milisecond
             drawBlackScreen(display, 200);
+            
+            % Make the subject waits while fitting the psychometric curve
             drawText_MxM(display, [0, 0], 'Veuillez patienter quelques secondes', colors.white, display.scale*4);
             Screen('Flip',display.windowPtr);
 
             % Make a coherence x performance table
             DATA.Fit.Psychometric.Chance = 1/length(display.table); 
             DATA.Fit.Psychometric.Coherence = unique(DATA.Paradigm.Phasis1.Coherences);
-            DATA.Fit.Psychometric.Performance = grpstats(DATA.Answers.Correction, DATA.Paradigm.Phasis1.Coherences(1:DATA.Paradigm.Phasis1.Trials ));
+            DATA.Fit.Psychometric.Performance = grpstats(DATA.Answers.Correction, DATA.Paradigm.Phasis1.Coherences(1:DATA.Paradigm.Phasis1.Trials));
             DATA.Fit.Psychometric.Coherence = [0; DATA.Fit.Psychometric.Coherence];
             DATA.Fit.Psychometric.Performance = [DATA.Fit.Psychometric.Chance; DATA.Fit.Psychometric.Performance];
             DATA.Fit.Psychometric.Coherence = [DATA.Fit.Psychometric.Coherence; 1];
@@ -649,12 +746,12 @@ try
                 % Insérer ici les paramètres de sortie du fit bayésien
             end
 
-            % Draw the figure
+            % Define the plot
             fig = figure(1);
             % Plot empirical points
             plot(DATA.Fit.Psychometric.Coherence, DATA.Fit.Psychometric.Performance, '*');
             hold on
-            % Plot fit
+            % Plot the sigmoid function
             plot(DATA.Fit.Psychometric.Coherence, DATA.Fit.Psychometric.SigFunc(DATA.Fit.Psychometric.SigFit, DATA.Fit.Psychometric.Coherence), 'g');
             hold on
             % Draw theoretic curve based on fit
@@ -714,6 +811,7 @@ try
             Phasis_number = 3;
         end
         
+        % Black screen during 200 milisecond
         drawBlackScreen(display, 200);
     end
     
@@ -725,17 +823,21 @@ try
     end
 
     % Convert points in money
+    % If the points sum is negative
     if (((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000) <= 0)
+        % Reset it at its initial level
         DATA.Points.Money = round(DATA.Points.Initial/1000);
+    % If the points sum is negative
     elseif (((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000) > 0)
+        % Convert it in money
         DATA.Points.Money = round((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000);
     end
 
     % Born the amount of money a subject can win
-    if (DATA.Points.Money < 5)
-        DATA.Points.Money = round(DATA.Points.Initial/1000); % 5 euros minimum
-    elseif (DATA.Points.Money > 20)
-        DATA.Points.Money = round(4*(DATA.Points.Initial/1000)); % 20 euros maximum
+    if (DATA.Points.Money < 5) % 5 euros minimum
+        DATA.Points.Money = round(DATA.Points.Initial/1000);
+    elseif (DATA.Points.Money > 20) % 20 euros maximum
+        DATA.Points.Money = round(4*(DATA.Points.Initial/1000));
     end
 
     % End screen
