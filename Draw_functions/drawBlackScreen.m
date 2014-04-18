@@ -1,9 +1,7 @@
-function display = drawBlackScreen(display, time)
+function display = drawBlackScreen(display)
 
-% Black screen during "time" milisecond(s)
 Screen('FillOval', display.windowPtr, display.bkColor);
 Screen('Flip', display.windowPtr);
-waitTill(time);
 
 end
 

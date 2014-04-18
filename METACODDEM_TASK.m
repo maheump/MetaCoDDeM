@@ -337,8 +337,9 @@ try
         movingDots_MxM(display, dots, dots.duration, DATA.Paradigm.Step, DATA.Subject.Design);
 
         % Black screen during 200 milisecond
-        drawBlackScreen(display, 0.2);
-
+        drawBlackScreen(display);
+        waitTill(0.2);
+        
         % For each review
         for Review = 2:1:DATA.Paradigm.Phasis2.Viewing_number
             
@@ -364,7 +365,8 @@ try
                 movingDots_MxM(display, dots, dots.duration, DATA.Paradigm.Step, DATA.Subject.Design);
                 
                 % Black screen during 200 milisecond
-                drawBlackScreen(display, 200);
+                drawBlackScreen(display);
+                waitTill(0.2);
             
             % If we did not have to display a second sample of stimulus, update the coherences lists
             elseif (Phasis_number == 2) && (isnan(DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 2)) == 1)
@@ -466,7 +468,8 @@ try
             end
             
             % Black screen during 200 milisecond
-            drawBlackScreen(display, 200);
+            drawBlackScreen(display);
+            waitTill(0.2);
         end
 
         %% Type I answer
@@ -612,7 +615,8 @@ try
         end
         
         % Black screen during 200 milisecond
-        drawBlackScreen(display, 200);
+        drawBlackScreen(display);
+        waitTill(0.2);
 
         %% Type II answer (monitoring)
 
@@ -714,7 +718,8 @@ try
         if (Phasis_number == 1) && (Trial_number == DATA.Paradigm.Phasis1.Trials)
             
             % Black screen during 200 milisecond
-            drawBlackScreen(display, 200);
+            drawBlackScreen(display);
+            waitTill(0.2);
             
             % Make the subject waits while fitting the psychometric curve
             drawText_MxM(display, [0, 0], 'Veuillez patienter quelques secondes', colors.white, display.scale*4);
@@ -812,7 +817,8 @@ try
         end
         
         % Black screen during 200 milisecond
-        drawBlackScreen(display, 200);
+        drawBlackScreen(display);
+        waitTill(0.2);
     end
     
     %% Get the compensation payment and display it
@@ -841,7 +847,7 @@ try
     end
 
     % End screen
-    drawText_MxM(display, [0, -(display.scale/5)], strcat('Merci d''avoir participé. Vous avez gagné : ', num2str(DATA.Points.Money), '?'), colors.white, display.scale*4);
+    drawText_MxM(display, [0, -(display.scale/5)], strcat('Merci d''avoir participé. Vous avez gagné : ', num2str(DATA.Points.Money), ' euros'), colors.white, display.scale*4);
     drawText_MxM(display, [0, (display.scale/5)], 'Vous pouvez maintenant venir chercher vos gains en salle de contrôle.', colors.white, display.scale*4);
     Screen('Flip', display.windowPtr);
     
@@ -986,8 +992,8 @@ try
 
 % In case of error
 catch error_message
-    Screen('CloseAll');
-    rethrow(error_message);
+Screen('CloseAll');
+rethrow(error_message);
 end
 
 %% Save files
@@ -1025,5 +1031,5 @@ diary off;
 % Then close the experiment
 Screen('CloseAll');
 
-% Clear some useless variables
-clear Phasis_number and Trial_number and Target_coherence and ans and i and fig and Review and Headers;
+% Clear all
+clear all;
