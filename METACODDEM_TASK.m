@@ -25,10 +25,17 @@
 clc;
 clear all;
 
+% Add functions folders to Matlab path
+addpath('Draw_functions');
+addpath('OptimDesign_functions');
+addpath('PTB_functions');
+addpath('VBA');
+
 % Define in which context the task will be displayed (1: Individual testing, 2: LEEP testing, 3: Script test)
 DATA.Subject.Context = 3;
 
 % Save on which computer the subject performed the task
+PsychJavaTrouble();
 DATA.Subject.Computer = java.net.InetAddress.getLocalHost;
 DATA.Subject.IP = char(DATA.Subject.Computer.getHostAddress);
 
@@ -87,10 +94,14 @@ elseif (DATA.Subject.Context == 3)
     DATA.Subject.Optimization = 0;
     DATA.Subject.Phasis = 123;
     DATA.Subject.Phasis_list = char(num2str(sort(DATA.Subject.Phasis))) - 48;
+    
+    DATA.Files.Name = 'Data';
 end
 
 % Define a file name and create a directory for the subject data
-DATA.Files.Name = ['MetaCoDDeM_' num2str(DATA.Subject.Group) '_' DATA.Subject.Initials '_' num2str(DATA.Subject.Number)];
+if (DATA.Subject.Context ~= 3)
+    DATA.Files.Name = ['MetaCoDDeM_' num2str(DATA.Subject.Group) '_' DATA.Subject.Initials '_' num2str(DATA.Subject.Number)];
+end
 mkdir(DATA.Files.Name);
 
 %% Define task parameters
@@ -120,7 +131,7 @@ display.skipChecks = 1; % Avoid Screen's timing checks and verbosity
 if (DATA.Subject.Design == 1)
     % Margin between the 2 alternative fored-choice
     DATA.Paradigm.Step = 180;
-elseif (DATA.Subject.Design == 1)
+elseif (DATA.Subject.Design == 2)
     % Margin between dots orientation and between clock ticks
     DATA.Paradigm.Step = 15;
 end
@@ -136,8 +147,8 @@ if (DATA.Subject.Design == 1)
 elseif (DATA.Subject.Design == 2)
     display.table_a = 0:DATA.Paradigm.Step:359;
     display.table_b = 90:-DATA.Paradigm.Step:0;
-    displat.table_c = 360:-DATA.Paradigm.Step:91;
-    displat.table_c(:, 1) = [];
+    display.table_c = 360:-DATA.Paradigm.Step:91;
+    display.table_c(:,1) = [];
     display.table = [display.table_a; display.table_b, display.table_c];
 end
 
@@ -313,19 +324,15 @@ try
         % For phasis 2,
         elseif (Phasis_number == 2)
             % Get a coherence level according to a given performance
-            syms Target_coherence
-            DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) ...
-                = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) ...
-                == DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 1)));
+            DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = ...
+                solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 1));           
             dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
 
         % For phasis 3,
         elseif (Phasis_number == 3)
             % Get a coherence level according to a given performance
-            syms Target_coherence
-            DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) ...
-                = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) ...
-                == DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1)));
+            DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = ...
+                solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1));
             dots.coherence = DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1);
         end
 
@@ -347,10 +354,8 @@ try
             if (Phasis_number == 2) && (isnan(DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 2)) == 0)
 
                 % Get again a coherence level according to a given performance
-                syms Target_coherence
-                DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) ...
-                    = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) ...
-                    == DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 3)));
+                DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = ...
+                    solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 3));                
                 dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3);
                 
                 % Save the difference between the first sample coherence and the second sample one
@@ -448,11 +453,9 @@ try
             % If the subject has choosen to see a new stimulus sample
             elseif (any(DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) == DATA.Paradigm.Phasis2.Facility_levels(2:length(DATA.Paradigm.Phasis2.Facility_levels))) == 1)
 
-                % Get a coherence level according to the performance we have to reach given the easiness increasing the subject chose
-                syms Target_coherence
-                DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) ...
-                    = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) ...
-                    == DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3)));
+                % Get a coherence level according to the performance we have to reach given the easiness increasing the subject chose                
+                DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = ...
+                    solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3));
                 dots.coherence = DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3);
                 
                 % Save the difference between the first sample coherence and the second sample one
@@ -776,8 +779,7 @@ try
             ylabel('Perceptual performance');
 
             % Get a coherence level according to a given performance
-            syms Target_coherence
-            DATA.Fit.Psychometric.C50 = double(solve((1./(1 + exp(-DATA.Fit.Psychometric.SigFit(1)*(Target_coherence - DATA.Fit.Psychometric.SigFit(2))))) == 0.5));
+            DATA.Fit.Psychometric.C50 = solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), 0.5);
         end
              
         %% Display some variables in the command window during
@@ -807,12 +809,12 @@ try
         %% Switch between phasis
         
         % Switch to phasis 2 when all the phasis 1 trials have been displayed
-        if Trial_number == DATA.Paradigm.Phasis1.Trials
+        if (Trial_number == DATA.Paradigm.Phasis1.Trials)
             Phasis_number = 2;
         end
         
         % Switch to phasis 3 when all the phasis 2 trials have been displayed
-        if Trial_number == DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials
+        if (Trial_number == DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials)
             Phasis_number = 3;
         end
         
@@ -847,7 +849,7 @@ try
     end
 
     % End screen
-    drawText_MxM(display, [0, -(display.scale/5)], strcat('Merci d''avoir participé. Vous avez gagné : ', num2str(DATA.Points.Money), ' euros'), colors.white, display.scale*4);
+    drawText_MxM(display, [0, -(display.scale/5)], strcat('Merci d''avoir participé. Vous avez gagné :  ', num2str(DATA.Points.Money), ' euros.'), colors.white, display.scale*4);
     drawText_MxM(display, [0, (display.scale/5)], 'Vous pouvez maintenant venir chercher vos gains en salle de contrôle.', colors.white, display.scale*4);
     Screen('Flip', display.windowPtr);
     
@@ -1012,7 +1014,9 @@ DATA.Paradigm.SetUp = display;
 save(DATA.Files.Name, 'DATA');
 
 % Save R table
-cell2csv(strcat(DATA.Files.Name, '.csv'), Rtable);
+cd ..
+cell2csv(strcat(DATA.Files.Name, '/', DATA.Files.Name, '.csv'), Rtable);
+cd(DATA.Files.Name);
 
 % Save fit graph
 saveas(fig, DATA.Files.Name, 'fig');
@@ -1021,6 +1025,11 @@ saveas(fig, DATA.Files.Name, 'fig');
 
 % Return to the task directory
 cd ..
+
+% Save final gain
+if (DATA.Subject.Context == 3)
+    dlmwrite('Gain.txt', DATA.Points.Money);
+end
 
 % Wait 1 minute
 waitTill(60);
@@ -1031,5 +1040,8 @@ diary off;
 % Then close the experiment
 Screen('CloseAll');
 
-% Clear all
+% Clear all and quit
+if (DATA.Subject.Context == 3)
+    exit;
+end
 clear all;
