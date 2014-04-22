@@ -25,17 +25,21 @@
 clc;
 clear all;
 
-% Add functions folders to Matlab path
-addpath('Draw_functions');
-addpath('OptimDesign_functions');
-addpath('PTB_functions');
-addpath('VBA');
-
 % Define in which context the task will be displayed (1: Individual testing, 2: LEEP testing, 3: Script test)
 DATA.Subject.Context = 3;
 
+% Add functions folders to Matlab path
+if (DATA.Subject.Context == 3)
+    addpath('Draw_functions');
+    addpath('OptimDesign_functions');
+    addpath('PTB_functions');
+    addpath('VBA');
+end
+
 % Save on which computer the subject performed the task
-PsychJavaTrouble();
+if (DATA.Subject.Context == 3)
+    PsychJavaTrouble();
+end
 DATA.Subject.Computer = java.net.InetAddress.getLocalHost;
 DATA.Subject.IP = char(DATA.Subject.Computer.getHostAddress);
 
@@ -126,6 +130,7 @@ display.bkColor = colors.black;
 display.dist = 60; % cm
 display.width = 30; % cm
 display.skipChecks = 1; % Avoid Screen's timing checks and verbosity
+display.text.font = 'Arial'; % Define font
 
 % Set paradigm parameters
 if (DATA.Subject.Design == 1)
@@ -151,6 +156,8 @@ elseif (DATA.Subject.Design == 2)
     display.table_c(:,1) = [];
     display.table = [display.table_a; display.table_b, display.table_c];
 end
+DATA.Fit.Psychometric.Chance = 1/length(display.table); % UTILISER ÇA POUR DÉFINIR LES NIVEAUX DE PERFORMANCE À CIBLER
+% DATA.Fit.Psychometric.Chance : (1-(max(DATA.Paradigm.Phasis2.Facility_levels)) - DATA.Fit.Psychometric.Chance : 1-(max(DATA.Paradigm.Phasis2.Facility_levels)
 
 % Define dot parameters
 dots.nDots = round(1.5*(2*pi*((display.scale/2)^2))); % Calculate the number of dots based on the aperture size
@@ -287,6 +294,9 @@ try
         % If it is the first trial of the phasis, display instructions
         if (Trial_number == 1) || (Trial_number == DATA.Paradigm.Phasis1.Trials + 1) || (Trial_number == DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + 1)
             drawInstructions(display, Phasis_number);
+            % Wait for key press
+            while KbCheck; end
+            KbWait;
         end
 
         % Display the information that it is a new stimulus
@@ -294,6 +304,7 @@ try
             drawText_MxM(display, [0, (display.scale/5)], 'Nouveau stimulus', colors.white, display.scale*4);
             drawText_MxM(display, [0, -(display.scale/5)], '(Appuyez sur n''importe quelle touche pour commencer)', colors.white, display.scale*2);
             Screen('Flip',display.windowPtr);
+            % Wait for key press
             while KbCheck; end
             KbWait;
         end
@@ -680,7 +691,7 @@ try
             % Get the amount of "confidence" gains
             
             % Get a first ticket (between 40 and 100)
-            DATA.Points.Tickets.First (Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = randi([40, 100]);
+            DATA.Points.Tickets.First(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = randi([40, 100]);
             % Get a second ticket (between 1 and 100)
             DATA.Points.Tickets.Second(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = randi([1, 100]);
             % If confidence is bigger than the first random ticket
@@ -729,7 +740,6 @@ try
             Screen('Flip',display.windowPtr);
 
             % Make a coherence x performance table
-            DATA.Fit.Psychometric.Chance = 1/length(display.table); 
             DATA.Fit.Psychometric.Coherence = unique(DATA.Paradigm.Phasis1.Coherences);
             DATA.Fit.Psychometric.Performance = grpstats(DATA.Answers.Correction, DATA.Paradigm.Phasis1.Coherences(1:DATA.Paradigm.Phasis1.Trials));
             DATA.Fit.Psychometric.Coherence = [0; DATA.Fit.Psychometric.Coherence];
@@ -849,7 +859,7 @@ try
     end
 
     % End screen
-    drawText_MxM(display, [0, -(display.scale/5)], strcat('Merci d''avoir participé. Vous avez gagné :  ', num2str(DATA.Points.Money), ' euros.'), colors.white, display.scale*4);
+    drawText_MxM(display, [0, -(display.scale/5)], strcat('Merci d''avoir participé. Vous avez gagné  ', num2str(DATA.Points.Money), ' euros.'), colors.white, display.scale*4);
     drawText_MxM(display, [0, (display.scale/5)], 'Vous pouvez maintenant venir chercher vos gains en salle de contrôle.', colors.white, display.scale*4);
     Screen('Flip', display.windowPtr);
     

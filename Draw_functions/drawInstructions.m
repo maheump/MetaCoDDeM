@@ -49,8 +49,4 @@ drawText_MxM(display, [0, -(display.scale/(4/3))], '(Appuyez sur n''importe quel
 % Flip it
 Screen('Flip',display.windowPtr);
 
-% Wait for key press
-while KbCheck; end
-KbWait;
-
 end
