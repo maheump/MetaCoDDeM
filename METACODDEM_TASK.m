@@ -325,7 +325,7 @@ try
             if (DATA.Subject.Optimization == 1)
                     if (Trial_number == 1)
                         % Initialize the Bayesian Optimizer
-                        OptimDesign('initialize', DATA.Fit.Psychometric.SigFunc, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.EstimatedVariance);
+                        OptimDesign('initialize', DATA.Fit.Psychometric.SigFunc, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.EstimatedVariance, DATA.Fit.Psychometric.GridU);
                     end
                     % If we reach the threshold, end the first phasis
 %                     if (z < 0.05) && (x < 0.05)
@@ -632,7 +632,8 @@ try
         % During the first phasis, if optimization option is enabled
         if (Phasis_number == 1) && (DATA.Subject.Optimization == 1)
             % Register the response made by the subject
-            [DATA.Paradigm.Phasis1.Coherences(Trial_number)] = OptimDesign('register', DATA.Answers.Correction(Trial_number, 1));
+            OptimDesign('register', DATA.Answers.Correction(Trial_number, 1));
+            %DATA.Paradigm.Phasis1.Coherences(Trial_number) = coh;
         end
 
         % Get the amount of "perceptual" gain
@@ -761,10 +762,10 @@ try
             % Make a coherence x performance table
             DATA.Fit.Psychometric.Coherence = unique(DATA.Paradigm.Phasis1.Coherences);
             DATA.Fit.Psychometric.Performance = grpstats(DATA.Answers.Correction, DATA.Paradigm.Phasis1.Coherences(1:DATA.Paradigm.Phasis1.Trials));
-            DATA.Fit.Psychometric.Coherence = [0; DATA.Fit.Psychometric.Coherence];
+            DATA.Fit.Psychometric.Coherence = [0, DATA.Fit.Psychometric.Coherence];
             DATA.Fit.Psychometric.Performance = [DATA.Fit.Psychometric.Chance; DATA.Fit.Psychometric.Performance];
-            DATA.Fit.Psychometric.Coherence = [DATA.Fit.Psychometric.Coherence; 1];
-            DATA.Fit.Psychometric.Performance = [DATA.Fit.Psychometric.Performance; 1];
+            %DATA.Fit.Psychometric.Coherence = [DATA.Fit.Psychometric.Coherence, 1];
+            %DATA.Fit.Psychometric.Performance = [DATA.Fit.Psychometric.Performance, 1];
 
             % If the bayesian optimization is not activate
             if (DATA.Subject.Optimization == 0)
@@ -781,6 +782,8 @@ try
                 
             % If the bayesian optimization is activate
             elseif (DATA.Subject.Optimization == 1)
+                % Define the psychometric function
+                DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));
                 % Get the psychometric parameters
                 [DATA.Fit.Psychometric.muPhi, DATA.Fit.Psychometric.SigmaPhi] = OptimDesign('results');                
                 DATA.Fit.Psychometric.SigFit(1) = DATA.Fit.Psychometric.muPhi(1);
@@ -803,8 +806,8 @@ try
             % Draw chance level
             plot(DATA.Fit.Psychometric.Theoretical_x, DATA.Fit.Psychometric.Chance, 'c');
             % Write down the sigmoid parameters on the graph
-            text(0.8, 0.2, strcat('Mu = ', num2str(DATA.Fit.Psychometric.SigFit(1))));
-            text(0.8, 0.1, strcat('Sigma = ', num2str(DATA.Fit.Psychometric.SigFit(2))));
+            text(0.8, 0.2, strcat('Mu = ', num2str((round(DATA.Fit.Psychometric.SigFit(1)*100)/100))));
+            text(0.8, 0.1, strcat('Sigma = ', num2str((round(DATA.Fit.Psychometric.SigFit(2)*100)/100))));
             % Set legend, axis and labels
             legend('Human data', 'Fit', 'Model data', 'Chance', 'location', 'northwest');
             axis([0, 1, 0, 1]);
@@ -871,7 +874,9 @@ try
         if (Training_trial > DATA.Paradigm.Trainings + 1)
             Trial_number = Trial_number + 1;
         end
-
+        
+    save(DATA.Files.Name, 'DATA'); % à SUPPRIMER
+    
     end
     
     %% Get the compensation payment and display it
