@@ -11,7 +11,6 @@ clear variables
 close all
 
 % Pour nous, paramètre de design = niveau de cohérence
-int.S0 = 0.5;
 p = 100; % Nombre de trials
 phi = [3;.20]; % Paramètres simulés [log sigmoid slope ; inflexion point]
 gridu = 0.01:0.01:1; % Variables de design potentielles

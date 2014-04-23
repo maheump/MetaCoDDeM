@@ -39,6 +39,7 @@ if ~isfield(display.text,'color')
     display.text.color = Screen(display.windowPtr,'TextColor');
 end
 
+size = round(size/1.5);
 display.text.size = size;
 
 %Set the attributes and save the old ones

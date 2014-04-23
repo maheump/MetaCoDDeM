@@ -26,13 +26,16 @@ clc;
 clear all;
 
 % Define in which context the task will be displayed (1: Individual testing, 2: LEEP testing, 3: Script test)
-DATA.Subject.Context = 3;
+DATA.Subject.Context = 2;
 
 % Add functions folders to Matlab path
 addpath('Draw_functions');
 addpath('OptimDesign_functions');
 addpath('PTB_functions');
 addpath('VBA');
+addpath('VBA\subfunctions');
+addpath('VBA\stats&plots');
+addpath('VBA\classification');
 
 % Save on which computer the subject performed the task
 PsychJavaTrouble();
@@ -55,7 +58,7 @@ if (DATA.Subject.Context == 1)
     DATA.Subject.Phasis = 123; % input('Phasis (123/12/13/23/3)? ');
     DATA.Subject.Phasis_list = char(num2str(sort(DATA.Subject.Phasis))) - 48;
     % If the phasis 1 is skipped then provide psychometric parameters
-    if (any(DATA.Subject.Phasis_list == 1)
+    if (any(DATA.Subject.Phasis_list == 1))
         DATA.Fit.Psychometric.SigFit(1) = str2double(input('Mu? '));
         DATA.Fit.Psychometric.SigFit(2) = str2double(input('Sigma? '));
     end
@@ -86,7 +89,7 @@ elseif (DATA.Subject.Context == 3)
     % Do not record any information about the subject
     DATA.Subject.Number = DATA.Subject.IP(length(DATA.Subject.IP) - 1:length(DATA.Subject.IP)); % Get IP adress and save the last two digits
     DATA.Subject.Date = datestr(now);
-    DATA.Subject.Group  = 'TEST';
+    DATA.Subject.Group = 'TEST';
     DATA.Subject.Age = NaN;
     DATA.Subject.Initials = 'TEST';
     DATA.Subject.Handedness = 'NaN';
@@ -176,9 +179,10 @@ if (DATA.Subject.Optimization == 0)
     % Transform it into a column
     DATA.Paradigm.Phasis1.Coherences_level = transpose(DATA.Paradigm.Phasis1.Coherences_level);
     % Set a number of trials per coherence level
-    DATA.Paradigm.Phasis1.Coherences_number = 15;
+    if (DATA.Subject.Context ~= 3)
+        DATA.Paradigm.Phasis1.Coherences_number = 15;
     % If we are in the test context, display only one trial per coherence level
-    if (DATA.Subject.Context == 3)
+    elseif (DATA.Subject.Context == 3)
         DATA.Paradigm.Phasis1.Coherences_number = 1;
     end
     % Repeat each coherence level a certain number of time (the number of trials per coherence level basically)
@@ -187,14 +191,12 @@ if (DATA.Subject.Optimization == 0)
     DATA.Paradigm.Phasis1.Coherences = DATA.Paradigm.Phasis1.Coherences(randperm(length(DATA.Paradigm.Phasis1.Coherences)), 1);
     % Get the total number of trials in the first phasis
     DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1);
-else
-    
+elseif (DATA.Subject.Optimization == 1)
     % Define the psychometric function
-    % DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));    
     DATA.Fit.Psychometric.SigFunc = @g_sigm_binomial;
     DATA.Fit.Psychometric.Estimated = [0;0];
-    DATA.Fit.Psychometric.EstimatedVariance = 1e2*eye(2);
-    DATA.Fit.Psychometric.GridU = 0:.01:1 ;
+    DATA.Fit.Psychometric.EstimatedVariance = DATA.Paradigm.Phasis1.Trials*eye(2);
+    DATA.Fit.Psychometric.GridU = 0.01:0.01:1 ;
 end
 
 % For phasis 2 (evidence accumulation phasis),
@@ -323,18 +325,15 @@ try
             if (DATA.Subject.Optimization == 1)
                     if (Trial_number == 1)
                         % Initialize the Bayesian Optimizer
-                        OptimDesign('initialize',DATA.Fit.Psychometric.Func,DATA.Fit.Psychometric.Estimated,DATA.Fit.Psychometric.EstimatedVariance);
-                        a = 0;
-                    elseif (Trial_number == 2)
-                        a = 0;
+                        OptimDesign('initialize', DATA.Fit.Psychometric.SigFunc, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.EstimatedVariance);
                     end
                     % If we reach the threshold, end the first phasis
-                    if (z < 0.05) && (x < 0.05)
-                        DATA.Paradigm.Phasis1.Trials = Trial_number;
-                        % Mettre à jour les variables de la Phase 1 en supprimant les lignes
-                        % DATA.Paradigm.Phasis1.Coherences(DATA.Paradigm.Phasis1.Trials:length(DATA.Paradigm.Phasis1.Coherences)) = [];
-                        % define the most informative dots motion coherence
-                    end
+%                     if (z < 0.05) && (x < 0.05)
+%                         DATA.Paradigm.Phasis1.Trials = Trial_number;
+%                         % Mettre à jour les variables de la Phase 1 en supprimant les lignes
+%                         % DATA.Paradigm.Phasis1.Coherences(DATA.Paradigm.Phasis1.Trials:length(DATA.Paradigm.Phasis1.Coherences)) = [];
+%                         % define the most informative dots motion coherence
+%                     end
                 % Find the most informative coherence level
                 [DATA.Paradigm.Phasis1.Coherences(Trial_number)] = OptimDesign('nexttrial');
             end
@@ -629,6 +628,12 @@ try
                 DATA.Answers.Correction(Trial_number, 1) = 0;
             end
         end
+        
+        % During the first phasis, if optimization option is enabled
+        if (Phasis_number == 1) && (DATA.Subject.Optimization == 1)
+            % Register the response made by the subject
+            [DATA.Paradigm.Phasis1.Coherences(Trial_number)] = OptimDesign('register', DATA.Answers.Correction(Trial_number, 1));
+        end
 
         % Get the amount of "perceptual" gain
         if (Phasis_number == 1)
@@ -640,11 +645,6 @@ try
         elseif (Phasis_number == 3)
             % Find the gain in the phasis 3 gain matrix, thanks to correction and easiness level
             DATA.Points.Counter.Type_I(Trial_number, 1) = DATA.Points.Matrix.Phasis3(display.control, DATA.Answers.Correction(Trial_number, 1) + 1);
-        end
-
-        % 
-        if  (Phasis_number == 1) && (DATA.Subject.Optimization)
-            [DATA.Paradigm.Phasis1.Coherences(Trial_number)] = OptimDesign('register',DATA.Answers.Correction(Trial_number, 1));
         end
                         
         % Black screen during 200 miliseconds
@@ -778,11 +778,13 @@ try
                     DATA.Fit.Psychometric.SigFit(1) = 10;
                     DATA.Fit.Psychometric.SigFit(2) = 0.5;
                 end
-            % If it is activate
-            elseif (DATA.Subject.Optimization == 1) 
-                % Insérer ici les paramètres de sortie du fit bayésien                
-                [DATA.Fit.Psychometric.muPhi,DATA.Fit.Psychometric.SigmaPhi] = OptimDesign('results');                
                 
+            % If the bayesian optimization is activate
+            elseif (DATA.Subject.Optimization == 1)
+                % Get the psychometric parameters
+                [DATA.Fit.Psychometric.muPhi, DATA.Fit.Psychometric.SigmaPhi] = OptimDesign('results');                
+                DATA.Fit.Psychometric.SigFit(1) = DATA.Fit.Psychometric.muPhi(1);
+                DATA.Fit.Psychometric.SigFit(2) = DATA.Fit.Psychometric.muPhi(2);
             end
 
             % Define the plot
@@ -887,15 +889,18 @@ try
     DATA.Points.Confidence.Phasis3 = sum(DATA.Points.Counter.Type_II((DATA.Paradigm.Phasis2.Trials + 1):(DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials)));
 
     % Convert points in money
-    % If the points sum is negative
-    if (((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000) <= 0)
-        % Reset it at its initial level
-        DATA.Points.Money = round(DATA.Points.Initial/1000);
-    % If the points sum is negative
-    elseif (((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000) > 0)
-        % Convert it in money
-        DATA.Points.Money = round((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000);
-    end
+    DATA.Points.Total = (DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II));
+    DATA.Points.Money = (DATA.Points.Total/DATA.Points.Maximum)*20;
+
+%     % If the points sum is negative
+%     if (((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000) <= 0)
+%         % Reset it at its initial level
+%         DATA.Points.Money = round(DATA.Points.Initial/1000);
+%     % If the points sum is negative
+%     elseif (((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000) > 0)
+%         % Convert it in money
+%         DATA.Points.Money = round((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000);
+%     end
 
     % Born the amount of money a subject can win
     if (DATA.Points.Money < 5) % 5 euros minimum
@@ -904,12 +909,12 @@ try
         DATA.Points.Money = round(4*(DATA.Points.Initial/1000));
     end
 
-    % End screen
-    % if (DATA.Subject.Context == 2)
-    drawText_MxM(display, [0, -(display.scale/5)], strcat({'Merci d''avoir participé. Vous avez gagné  ', num2str(DATA.Points.Money), ' euros.'}), colors.white, display.scale*4);
-    drawText_MxM(display, [0, (display.scale/5)], 'Vous pouvez maintenant venir chercher vos gains en salle de contrôle.', colors.white, display.scale*4);
-    Screen('Flip', display.windowPtr);
-    % end
+    % Display end screen
+    if (DATA.Subject.Context == 2)
+        drawText_MxM(display, [0, -(display.scale/5)], strcat('Merci d''avoir participé. Vous avez gagné  ', num2str(DATA.Points.Money), ' euros.'), colors.white, display.scale*4);
+        drawText_MxM(display, [0, (display.scale/5)], 'Vous pouvez maintenant venir chercher vos gains en salle de contrôle.', colors.white, display.scale*4);
+        Screen('Flip', display.windowPtr);
+    end
     
     %% Save a table for further import in DMAT
 
@@ -1093,13 +1098,15 @@ if (DATA.Subject.Context == 2)
 end
 
 % Close the diary
-diary off;
+if (DATA.Subject.Context == 3)
+    diary off;
+end
 
 % Then close the experiment
 Screen('CloseAll');
 
 % Clear all and quit
+clear all;
 if (DATA.Subject.Context == 2)
     exit;
 end
-clear all;
