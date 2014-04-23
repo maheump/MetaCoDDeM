@@ -190,10 +190,10 @@ if (DATA.Subject.Optimization == 0)
 else
     
     % Define the psychometric function
-    DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));
-    
-    %DATA.Fit.Psychometric.SigFit(1)
-    DATA.Fit.Psychometric.Function = @g_sigm_binomial;
+    % DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));    
+    DATA.Fit.Psychometric.SigFunc = @g_sigm_binomial;
+    DATA.Fit.Psychometric.Init = [1;1];
+    DATA.Fit.Psychometric.Initvar(1:2
     
 end
 
@@ -323,8 +323,7 @@ try
             if (DATA.Subject.Optimization == 1)
                     if (Trial_number == 1)
                         % Initialize the Bayesian Optimizer
-                        OptimDesign('initialize',DATA.Fit.Function,DATA.Fit.SigFit);
-                        DATA.Answers.Correction(1)=NaN;                        
+                        OptimDesign('initialize',DATA.Fit.Psychometric.SigFunc,DATA.Fit.Function,DATA.Fit.SigFit);
                         a = 0;
                     elseif (Trial_number == 2)
                         a = 0;
@@ -642,6 +641,11 @@ try
             DATA.Points.Counter.Type_I(Trial_number, 1) = DATA.Points.Matrix.Phasis3(display.control, DATA.Answers.Correction(Trial_number, 1) + 1);
         end
 
+        % 
+        if  (Phasis_number == 1) && (DATA.Subject.Optimization)
+            [DATA.Paradigm.Phasis1.Coherences(Trial_number)] = OptimDesign('register',DATA.Answers.Correction(Trial_number, 1));
+        end
+                        
         % Black screen during 200 miliseconds
         drawBlackScreen(display);
         waitTill(0.2);

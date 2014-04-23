@@ -191,9 +191,10 @@ else
     
     % Define the psychometric function
     % DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));    
-    %DATA.Fit.Psychometric.SigFit(1)
     DATA.Fit.Psychometric.SigFunc = @g_sigm_binomial;
-    
+    DATA.Fit.Psychometric.Estimated = [0;0];
+    DATA.Fit.Psychometric.EstimatedVariance = 1e2*eye(2);
+    DATA.Fit.Psychometric.GridU = 0:.01:1 ;
 end
 
 % For phasis 2 (evidence accumulation phasis),
@@ -322,7 +323,7 @@ try
             if (DATA.Subject.Optimization == 1)
                     if (Trial_number == 1)
                         % Initialize the Bayesian Optimizer
-                        OptimDesign('initialize',DATA.Fit.Psychometric.SigFunc,DATA.Fit.Function,DATA.Fit.SigFit);
+                        OptimDesign('initialize',DATA.Fit.Psychometric.Func,DATA.Fit.Psychometric.Estimated,DATA.Fit.Psychometric.EstimatedVariance);
                         a = 0;
                     elseif (Trial_number == 2)
                         a = 0;
@@ -780,8 +781,7 @@ try
             % If it is activate
             elseif (DATA.Subject.Optimization == 1) 
                 % Insérer ici les paramètres de sortie du fit bayésien                
-                DATA.Fit.Psychometric. = OptimDesign('results');
-                
+                [DATA.Fit.Psychometric.muPhi,DATA.Fit.Psychometric.SigmaPhi] = OptimDesign('results');                
                 
             end
 
