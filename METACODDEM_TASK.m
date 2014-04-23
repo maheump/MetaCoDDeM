@@ -358,9 +358,10 @@ try
         display = drawFixationCross(display);
         waitTill(1);
         
-        % Randomly choose a coherence level for training trials
+        % Randomly choose a coherence level and a direction for training trials
         if (Training_trial <= DATA.Paradigm.Trainings)
-            dots.coherence = randi([0,100])/100;
+            dots.coherence = randi([10,100])/100;
+            dots.direction = display.table(1, randi(size(display.table, 2)));
         end
 
         % Show the stimulus
@@ -722,19 +723,19 @@ try
             end
             % If the ticket lottery is bigger than the second random ticket
             if (DATA.Points.Tickets.Lottery(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) >= DATA.Points.Tickets.Second(Trial_number - DATA.Paradigm.Phasis1.Trials, 1))
-                % Loose points
-                DATA.Points.Counter.Type_II(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Points.Matrix.Confidence(1);
+                % Choose points at random
+                DATA.Points.Counter.Type_II(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Points.Matrix.Confidence(randi([1,2]));
             % If the ticket lottery is smaller than the second random ticket
             elseif (DATA.Points.Tickets.Lottery(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) < DATA.Points.Tickets.Second(Trial_number - DATA.Paradigm.Phasis1.Trials, 1))
-                % Win points
-                DATA.Points.Counter.Type_II(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Points.Matrix.Confidence(2);
+                % Choose points given the subject performance
+                DATA.Points.Counter.Type_II(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = DATA.Points.Matrix.Confidence(DATA.Answers.Correction(Trial_number, 1) + 1);
             end
         end
 
         %% Display a break screen
 
         % If we are in the middle of phasis 2 or phasis 3
-        if (Trial_number - DATA.Paradigm.Phasis1.Trials) == round(DATA.Paradigm.Phasis2.Trials/2) || (Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials) == round(DATA.Paradigm.Phasis3.Trials/2)
+        if ((Trial_number - DATA.Paradigm.Phasis1.Trials) == round(DATA.Paradigm.Phasis2.Trials/2)) || ((Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials) == round(DATA.Paradigm.Phasis3.Trials/2))
             % Display the break screen
             drawText_MxM(display, [0, (display.scale/5)], 'Faîtes une pause d''une ou deux minutes', colors.white, (display.scale*4));
             drawText_MxM(display, [0, -(display.scale/5)], '(Appuyez sur n''importe quelle touche pour continuer)', colors.white, (display.scale*2));
@@ -877,6 +878,13 @@ try
     if (any(DATA.Subject.Phasis_list == 2) == 0) && (any(DATA.Subject.Phasis_list == 3) == 0)
         DATA.Points.Counter.Type_II = 0;
     end
+    
+    % Regroup points in few categories
+    DATA.Points.Perceptual.Phasis1 = sum(DATA.Points.Counter.Type_I(1:DATA.Paradigm.Phasis1.Trials));
+    DATA.Points.Perceptual.Phasis2 = sum(DATA.Points.Counter.Type_I((DATA.Paradigm.Phasis1.Trials + 1):(DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials)));
+    DATA.Points.Confidence.Phasis2 = sum(DATA.Points.Counter.Type_II(1:DATA.Paradigm.Phasis2.Trials));
+    DATA.Points.Perceptual.Phasis3 = sum(DATA.Points.Counter.Type_I((DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + 1):DATA.Paradigm.Trials));
+    DATA.Points.Confidence.Phasis3 = sum(DATA.Points.Counter.Type_II((DATA.Paradigm.Phasis2.Trials + 1):(DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials)));
 
     % Convert points in money
     % If the points sum is negative
@@ -897,9 +905,11 @@ try
     end
 
     % End screen
-    drawText_MxM(display, [0, -(display.scale/5)], strcat('Merci d''avoir participé. Vous avez gagné  ', num2str(DATA.Points.Money), ' euros.'), colors.white, display.scale*4);
+    % if (DATA.Subject.Context == 2)
+    drawText_MxM(display, [0, -(display.scale/5)], strcat({'Merci d''avoir participé. Vous avez gagné  ', num2str(DATA.Points.Money), ' euros.'}), colors.white, display.scale*4);
     drawText_MxM(display, [0, (display.scale/5)], 'Vous pouvez maintenant venir chercher vos gains en salle de contrôle.', colors.white, display.scale*4);
     Screen('Flip', display.windowPtr);
+    % end
     
     %% Save a table for further import in DMAT
 
@@ -1075,10 +1085,12 @@ saveas(fig, DATA.Files.Name, 'fig');
 cd ..
 
 % Save final gain
-dlmwrite('Gain.txt', DATA.Points.Money);
+dlmwrite('Gain.txt', [DATA.Points.Perceptual.Phasis1, DATA.Points.Perceptual.Phasis2, DATA.Points.Confidence.Phasis2, DATA.Points.Perceptual.Phasis3, DATA.Points.Confidence.Phasis3, DATA.Points.Money]);
 
 % Wait 1 minute
-waitTill(60);
+if (DATA.Subject.Context == 2)
+    waitTill(60);
+end
 
 % Close the diary
 diary off;
