@@ -14,10 +14,10 @@ DATA.Fit.Psychometric.EstimatedVariance = 1e2*eye(2);
 
 DATA.Fit.Psychometric.GridU = -1:2e-2:1;
 
-OptimDesign('initialize',...
-    DATA.Fit.Psychometric.Func,...
-    DATA.Fit.Psychometric.Estimated,...
-    DATA.Fit.Psychometric.EstimatedVariance,...
+OptimDesign('initialize', ...
+    DATA.Fit.Psychometric.Func, ...
+    DATA.Fit.Psychometric.Estimated, ...
+    DATA.Fit.Psychometric.EstimatedVariance, ...
     DATA.Fit.Psychometric.GridU);
 
 phi = [2.5 ; -.25];
@@ -27,7 +27,6 @@ efficiency = zeros(NTrials,1);
 
 for Trial_number=1:NTrials
     [DATA.Paradigm.Phasis1.Coherences(Trial_number),efficiency(Trial_number)] = OptimDesign('nexttrial');
-
     
     t = Trial_number
     % This is our Pseudo subject
@@ -44,5 +43,6 @@ for Trial_number=1:NTrials
     [m]=OptimDesign('results')
     
 end                    
+
 [DATA.Fit.Psychometric.muPhi,DATA.Fit.Psychometric.SigmaPhi] = OptimDesign('results');
 
