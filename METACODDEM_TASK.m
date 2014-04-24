@@ -169,7 +169,7 @@ dots.duration = 0.750; % miliseconds
 % For phasis 1 (calibration phasis),
 
 % Temporary define a certain number of trials (the bayesian optimization will reduce it later)
-DATA.Paradigm.Phasis1.Trials = 100;
+DATA.Paradigm.Phasis1.Trials = 70;
 % If the bayesian optimization is not activate, then screen the possible coherence levels window
 if (DATA.Subject.Optimization == 0)
     % Define the step
@@ -343,7 +343,12 @@ try
         elseif (Phasis_number == 2)
             % Get a coherence level according to a given performance
             DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = ...
-                solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 1));           
+                solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 1));
+            if (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) > 1)
+                DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = 1;
+            elseif (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) < 0)
+                DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = 0;
+            end
             dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
 
         % For phasis 3,
@@ -351,6 +356,11 @@ try
             % Get a coherence level according to a given performance
             DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = ...
                 solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1));
+            if (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) > 1)
+                DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = 1;
+            elseif (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) < 0)
+                DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = 0;
+            end
             dots.coherence = DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1);
         end
 
@@ -379,7 +389,10 @@ try
 
                 % Get again a coherence level according to a given performance
                 DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = ...
-                    solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 3));                
+                    solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 3));
+                if (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) > 1)
+                    DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = 1;
+                end
                 dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3);
 
                 % Save the difference between the first sample coherence and the second sample one
@@ -437,7 +450,7 @@ try
                     if keyCode(keys.space)
 
                         % Get the metacognitive control reaction time
-                        DATA.Answers.RT3brut(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = (timeSecs - startTime)*100;
+                        DATA.Answers.RT3brut(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = (timeSecs - startTime)*1000;
 
                         % If the subject has choosen not to see a new stimulus sample
                         if (display.control == 1)
@@ -480,6 +493,9 @@ try
                 % Get a coherence level according to the performance we have to reach given the easiness increasing the subject chose                
                 DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = ...
                     solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3));
+                if (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) > 1)
+                    DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = 1;
+                end
                 dots.coherence = DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3);
 
                 % Save the difference between the first sample coherence and the second sample one
@@ -567,7 +583,7 @@ try
                 elseif keyCode(keys.space)
                     if (display.index ~= 0)
                         % Get the perceptual reaction time
-                        DATA.Answers.RT1brut(Trial_number, 1) = (timeSecs - startTime)*100;
+                        DATA.Answers.RT1brut(Trial_number, 1) = (timeSecs - startTime)*1000;
                         % Save the subject answer
                         DATA.Answers.Direction(Trial_number, 1) = display.table(1, display.index);
                         waitTill(0.2);
@@ -690,7 +706,7 @@ try
                          % If space key is pressed
                          elseif keyCode(keys.space)
                             % Get the metacognitive monitoring reaction time
-                            DATA.Answers.RT2brut(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = (timeSecs - startTime)*100;
+                            DATA.Answers.RT2brut(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = (timeSecs - startTime)*1000;
                             % Get the confidence score on a 100 scale
                             DATA.Answers.Confidence(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = round(((display.rect + display.scale) / (2 * display.scale)) * 100);
                             waitTill(0.2);
