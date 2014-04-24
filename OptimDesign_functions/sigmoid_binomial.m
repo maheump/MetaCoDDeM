@@ -1,5 +1,8 @@
 function [Sx,dsdx,dsdp] = g_sigm_binomial(chancelevel,Phi,u,varargin)
 % Evaluates the sigmoid function for binomial data analysis
+if nargin>3 && ~isempty(varargin{1})
+    varargin{:}
+end
 persistent param
 if ~isempty(chancelevel)
     fprintf('Adjusting for chance level: %g%%\n', chancelevel*100);
@@ -38,15 +41,18 @@ param.mat = 0;
 x = u ;
 x = x(:)';
 
-param.beta = param.beta.*exp(Phi(1));
+beta = param.beta.*exp(Phi(1));
 th = Phi(2);
 
-bx = param.beta*(x-th);
+bx = beta*(x-th);
 Sx = param.G0./(1+exp(-bx));
 Sx = Sx + param.S0;
-dsdx = param.beta*Sx.*(1-Sx./param.G0);
+
+dsdx = beta*Sx.*(1-Sx./param.G0);
+if nargout < 3 ; return; end
+
 dsdp = zeros(size(Phi,1),length(x));
-dsdp(1,:) = param.beta.*param.G0./(1+exp(-bx)).^2.*x.*exp(-bx);
+dsdp(1,:) = beta.*param.G0./(1+exp(-bx)).^2.*x.*exp(-bx);
 if size(Phi,1) == 2
     dsdp(2,:) = -dsdx;
 end
