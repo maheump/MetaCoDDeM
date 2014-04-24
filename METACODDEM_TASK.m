@@ -350,7 +350,7 @@ try
         elseif (Phasis_number == 2)
             % Get a coherence level according to a given performance
             DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = ...
-                solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 1));
+                solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 1), DATA.Fit.Psychometric.Chance);
             if (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) > 1)
                 DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = 1;
             elseif (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) < 0.01)
@@ -362,7 +362,7 @@ try
         elseif (Phasis_number == 3)
             % Get a coherence level according to a given performance
             DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = ...
-                solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1));
+                solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1), DATA.Fit.Psychometric.Chance);
             if (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) > 1)
                 DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = 1;
             elseif (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) < 0.01)
@@ -396,7 +396,7 @@ try
 
                 % Get again a coherence level according to a given performance
                 DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = ...
-                    solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 3));
+                    solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 3), DATA.Fit.Psychometric.Chance);
                 if (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) > 1)
                     DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = 1;
                 elseif (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) < 0.01)
@@ -501,7 +501,7 @@ try
 
                 % Get a coherence level according to the performance we have to reach given the easiness increasing the subject chose                
                 DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = ...
-                    solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3));
+                    solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3), DATA.Fit.Psychometric.Chance);
                 if (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) > 1)
                     DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = 1;
                 elseif (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) < 0.01)
@@ -844,7 +844,7 @@ try
             ylabel('Perceptual performance');
 
             % Get a coherence level according to a given performance
-            DATA.Fit.Psychometric.C50 = solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), 0.5);
+            DATA.Fit.Psychometric.C50 = solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), 0.5, DATA.Fit.Psychometric.Chance);
         end
 
         %% Display some variables in the command window during

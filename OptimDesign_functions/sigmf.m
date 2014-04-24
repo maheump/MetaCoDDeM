@@ -1,4 +1,4 @@
-function y = sigmf(x, params)
+function y = sigmf(x, params, chancelevel)
 %SIGMF Sigmoid curve membership function.
 %   SIGMF(X, PARAMS) returns a matrix which is the sigmoid
 %   membership function evaluated at X. PARAMS is a 2-element vector
@@ -35,5 +35,9 @@ elseif length(params) < 2
     error('The sigmoidal MF needs at least two parameters.');
 end
 
+if nargin<3
+    chancelevel = 0;
+end
+
 a = params(1); c = params(2);
-y = 1./(1 + exp(-a*(x-c)));
+y = chancelevel+(1-chancelevel)./(1 + exp(-a*(x-c)));
