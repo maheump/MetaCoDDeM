@@ -270,10 +270,10 @@ end
 
 % Define gains modalities (left column for wrong answers and right column for correct answers)
 DATA.Points.Initial = 5000; % Define the initial gain
-DATA.Points.Matrix.Phasis1 = [-20, 20]; % Define the gain matrix for phasis 1
-DATA.Points.Matrix.Phasis2 = [-50, 50]; % Define the gain matrix for phasis 2
+DATA.Points.Matrix.Phasis1 = [-80, 80]; % Define the gain matrix for phasis 1
+DATA.Points.Matrix.Phasis2 = [-80, 80]; % Define the gain matrix for phasis 2
 DATA.Points.Matrix.Phasis3 = [-190, 130; -110, 110; -90, 90; -70, 70; -50, 50]; % Define the gain matrix for phasis 3
-DATA.Points.Matrix.Confidence = [-100, 50]; % Define the gain matrix for condidence steps
+DATA.Points.Matrix.Confidence = [-110, 50]; % Define the gain matrix for condidence steps
 
 % Compute the maximum amount of points a subject can win
 DATA.Points.Maximum = DATA.Points.Initial + ...
@@ -898,7 +898,7 @@ try
             Trial_number = Trial_number + 1;
         end
         
-    save(DATA.Files.Name, 'DATA'); % à SUPPRIMER
+    % save(DATA.Files.Name, 'DATA'); % à SUPPRIMER
     
     end
     
