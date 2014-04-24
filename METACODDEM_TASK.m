@@ -193,7 +193,10 @@ if (DATA.Subject.Optimization == 0)
     DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1);
 elseif (DATA.Subject.Optimization == 1)
     % Define the psychometric function
+    sigmoid_binomial(DATA.Fit.Psychometric.Chance);
+    DATA.Fit.Psychometric.SigFunc = @sigmoid_binomial;
     DATA.Fit.Psychometric.SigFunc = @g_sigm_binomial;
+    %DATA.Fit.Psychometric.SigFunc = @g_sigm_binomial;
     DATA.Fit.Psychometric.Estimated = [0;0];
     DATA.Fit.Psychometric.EstimatedVariance = DATA.Paradigm.Phasis1.Trials*eye(2);
     DATA.Fit.Psychometric.GridU = 0.01:0.01:1 ;
@@ -329,6 +332,7 @@ try
                     if (Trial_number == 1)
                         % Initialize the Bayesian Optimizer
                         OptimDesign('initialize', DATA.Fit.Psychometric.SigFunc, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.EstimatedVariance, DATA.Fit.Psychometric.GridU);
+                        DATA.Fit.Psychometric.Efficiency = zeros(DATA.Paradigm.Trials, 1);
                     end
                     % If we reach the threshold, end the first phasis
 %                     if (z < 0.05) && (x < 0.05)
@@ -338,7 +342,7 @@ try
 %                         % define the most informative dots motion coherence
 %                     end
                 % Find the most informative coherence level
-                [DATA.Paradigm.Phasis1.Coherences(Trial_number)] = OptimDesign('nexttrial');
+                [DATA.Paradigm.Phasis1.Coherences(Trial_number), DATA.Fit.Psychometric.Efficiency(Trial_number)] = OptimDesign('nexttrial');
             end
             dots.coherence = DATA.Paradigm.Phasis1.Coherences(Trial_number);
 
@@ -656,6 +660,8 @@ try
         if (Phasis_number == 1) && (DATA.Subject.Optimization == 1)
             % Register the response made by the subject
             OptimDesign('register', DATA.Answers.Correction(Trial_number, 1));
+            % Save the evolution of the sigmoid parameters during phasis 1
+            [DATA.Fit.Psychometric.Parameters(:, Trial_number)] = OptimDesign('results');
             %DATA.Paradigm.Phasis1.Coherences(Trial_number) = coh;
         end
 
@@ -805,12 +811,12 @@ try
                 
             % If the bayesian optimization is activate
             elseif (DATA.Subject.Optimization == 1)
-                % Define the psychometric function
-                DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));
                 % Get the psychometric parameters
                 [DATA.Fit.Psychometric.muPhi, DATA.Fit.Psychometric.SigmaPhi] = OptimDesign('results');                
                 DATA.Fit.Psychometric.SigFit(1) = DATA.Fit.Psychometric.muPhi(1);
                 DATA.Fit.Psychometric.SigFit(2) = DATA.Fit.Psychometric.muPhi(2);
+                % Define the psychometric function
+                DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));
             end
 
             % Define the plot
@@ -1109,8 +1115,8 @@ cd ..
 cell2csv(strcat(DATA.Files.Name, '/', DATA.Files.Name, '.csv'), Rtable);
 cd(DATA.Files.Name);
 
-% Save fit graph
-saveas(fig, DATA.Files.Name, 'fig');
+% % Save fit graph
+% saveas(fig, DATA.Files.Name, 'fig');
 
 %% Close all
 

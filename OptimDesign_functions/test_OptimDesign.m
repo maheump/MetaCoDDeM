@@ -3,10 +3,11 @@ clear
 % DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));
 % Set the chancelevel used within the sigmoid:
 chancelevel = 0;%1/16;%.5;
+chancelevel = 0.5;
 sigmoid_binomial(chancelevel);
 DATA.Fit.Psychometric.Func = @sigmoid_binomial;%(u,Phi) sigm(u,struct('G0',1,'S0',0,'beta',1,'INV',0),Phi);
 
-DATA.Fit.Psychometric.Func = @g_sigm_binomial
+DATA.Fit.Psychometric.Func = @g_sigm_binomial;
 
 
 DATA.Fit.Psychometric.Estimated = [0;0];
@@ -40,7 +41,9 @@ for Trial_number=1:NTrials
     OptimDesign('register',DATA.Answers.Correction(Trial_number,1));
     
     % monitor
-    [m(:,Trial_number)]=OptimDesign('results');
+    [DATA.Fit.Psychometric.Parameters(:,Trial_number)]=OptimDesign('results');
+    
+    
     
 end                    
 
