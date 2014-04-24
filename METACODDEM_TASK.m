@@ -278,9 +278,12 @@ DATA.Points.Matrix.Confidence = [-100, 50]; % Define the gain matrix for condide
 % Compute the maximum amount of points a subject can win
 DATA.Points.Maximum = DATA.Points.Initial + ...
     (max(DATA.Points.Matrix.Phasis1)*DATA.Paradigm.Phasis1.Trials) + ...
-    (max(DATA.Points.Matrix.Phasis2)*DATA.Paradigm.Phasis2.Trials) + ...
-    (max(max(DATA.Points.Matrix.Phasis3(1,:)))*DATA.Paradigm.Phasis3.Trials) + ...
+    (((DATA.Points.Matrix.Phasis2(1)*(1 - mean(DATA.Paradigm.Phasis2.Performances(:,3)))) + (DATA.Points.Matrix.Phasis2(2)*(mean(DATA.Paradigm.Phasis2.Performances(:,3)))))*DATA.Paradigm.Phasis2.Trials) + ...
+    (((mean(DATA.Points.Matrix.Phasis3(:,1)))*(1 - (mean(DATA.Paradigm.Phasis3.Performances) + mean(DATA.Paradigm.Phasis2.Facility_levels(2:length(DATA.Paradigm.Phasis2.Facility_levels))))) + (mean(DATA.Points.Matrix.Phasis3(:,2)))*(mean(DATA.Paradigm.Phasis3.Performances) + mean(DATA.Paradigm.Phasis2.Facility_levels(2:length(DATA.Paradigm.Phasis2.Facility_levels)))))*DATA.Paradigm.Phasis3.Trials) + ...
     (max(DATA.Points.Matrix.Confidence)*(DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials));
+%     (max(DATA.Points.Matrix.Phasis2)*DATA.Paradigm.Phasis2.Trials) + ...
+%     (max(max(DATA.Points.Matrix.Phasis3(1,:)))*DATA.Paradigm.Phasis3.Trials) + ...
+%     (max(DATA.Points.Matrix.Confidence)*(DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials));
 
 %% Start the trial
 try    
@@ -346,8 +349,8 @@ try
                 solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 1));
             if (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) > 1)
                 DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = 1;
-            elseif (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) < 0)
-                DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = 0;
+            elseif (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) < 0.01)
+                DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = 0.01;
             end
             dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
 
@@ -358,8 +361,8 @@ try
                 solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1));
             if (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) > 1)
                 DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = 1;
-            elseif (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) < 0)
-                DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = 0;
+            elseif (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) < 0.01)
+                DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = 0.01;
             end
             dots.coherence = DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1);
         end
@@ -392,6 +395,8 @@ try
                     solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 3));
                 if (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) > 1)
                     DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = 1;
+                elseif (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) < 0.01)
+                    DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = 0.01;
                 end
                 dots.coherence = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3);
 
@@ -495,6 +500,8 @@ try
                     solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3));
                 if (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) > 1)
                     DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = 1;
+                elseif (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) < 0.01)
+                    DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = 0.01;
                 end
                 dots.coherence = DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3);
 
