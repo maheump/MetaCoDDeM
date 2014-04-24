@@ -42,18 +42,38 @@ x = u ;
 x = x(:)';
 
 beta = param.beta.*exp(Phi(1));
+%beta = param.beta;
 
 th = Phi(2);
 
 bx = beta*(x-th);
-Sx = param.G0./(1+exp(-bx));
+Sx = param.G0./(1+exp(-bx)); % Il y a un moins devant le bx, ça me semble bizarre (pour le calcul de la dérivée en tout les cas) ...
 Sx = Sx + param.S0;
-
 
 % Récupérer les dérivés dX et db et dt de:
 % http://www.wolframalpha.com/input/?i=d%2FdX%5BS+%2B+G+%2F%281+%2B+exp%28-b*%28X-t%29%29%29%5D
 
-dsdx = beta*Sx.*(1-Sx./param.G0);
+% Avec chaque membre spécifié ERREUR
+%
+% dX
+% dsdx = (beta*param.G0*exp(beta*(th+x)))/((exp(beta*th)+exp(beta*x))^2);
+% dsdx = (beta*param.G0*exp(beta*(th-x)))/((exp(beta*(x-th))+1)^2);
+% dsdx = (beta*param.G0*exp(beta*(x-th)))/((exp(beta*(x-th))+1)^2);
+%
+% db
+% dsdx = -(param.G0*(th-x)*exp(beta*(th-x)))/((exp(beta*th)+exp(beta*x))^2);
+% dsdx = -(param.G0*(th-x)*exp(beta*(th+x)))/((exp(beta*(th-x))+1)^2);
+% dsdx = -(param.G0*(th-x)*exp(beta*(x-th)))/((exp(beta*(th-x))+1)^2);
+%
+% dt
+% dsdx = -(beta*param.G0*exp(beta*(th+x)))/((exp(beta*th)+exp(beta*x))^2);
+% dsdx = -(beta*param.G0*exp(beta*(th-x)))/((exp(beta*(th-x))+1)^2);
+% dsdx = -(beta*param.G0*exp(beta*(x-th)))/((exp(beta*(x-th))+1)^2);
+
+% Avec Sx
+%
+
+dsdx = beta*Sx.*(1-Sx./param.G0); % On prend le beta dans le dérivée, or le dernier définit contient Phi(1) dans sa valeur, est-ce normal ?
 
 % evaluate derivative wrt x
 % dsdx = b*Sx.*(1-Sx./in.G0);
