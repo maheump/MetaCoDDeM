@@ -3,15 +3,15 @@
 clear variables
 close all
 
-g_fname = @sigmoid_binomial;     % observation function`
-chancelevel=1/16
-g_fname(chancelevel)
-%g_fname = @g_sigm_binomial
+%g_fname = @sigmoid_binomial;     % observation function`
+chancelevel=0%.5%1/16
+%g_fname(chancelevel)
+g_fname = @g_sigm_binomial
 f_fname = [];                   % evolution function (learning)
 
 p = 1e2; %  number of trials
-phi = [2.5;-0.25]; % simulated parameters: [log sigmoid slope ; inflexion point]
-gridu = -1:2e-2:1; % set of potential design control variables
+phi = [15;.42]; % simulated parameters: [log sigmoid slope ; inflexion point]
+gridu = .1:1e-1:1; % set of potential design control variables
 optimDesign = 0; % if 1: further optimize design locally
 
 % get binomial sampling probabilities
@@ -49,7 +49,7 @@ options.priors.SigmaPhi = 1e8*eye(2);
 options.DisplayWin = 0;
 options.TolFun = 1e-8;
 options.GnTolFun = 1e-8;
-options.verbose = 0;
+options.verbose = 1;
 opt = options;
 
 mu = zeros(dim.n_phi,p);
@@ -130,7 +130,6 @@ for t=1:p
         plotUncertainTimeSeries(mu(:,1:t),sqrt(va(:,1:t)),1:t,ha,1:2);
 %         set(ha,'xtick',1:t)
     end
-    
     
     
 end

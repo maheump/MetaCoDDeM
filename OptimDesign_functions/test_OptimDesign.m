@@ -10,7 +10,7 @@ DATA.Fit.Psychometric.Func = @sigmoid_binomial;%(u,Phi) sigm(u,struct('G0',1,'S0
 DATA.Fit.Psychometric.Func = @g_sigm_binomial;
 
 
-DATA.Fit.Psychometric.Estimated = [0;0];
+DATA.Fit.Psychometric.Estimated = [30;0.5];
 DATA.Fit.Psychometric.EstimatedVariance = 1e2*eye(2);
 
 DATA.Fit.Psychometric.GridU = -1:2e-2:1;
@@ -21,7 +21,7 @@ OptimDesign('initialize', ...
     DATA.Fit.Psychometric.EstimatedVariance, ...
     DATA.Fit.Psychometric.GridU);
 
-phi = [2.5 ; -.25];
+phi = [25 ; .25];
 
 NTrials = 100;
 efficiency = zeros(NTrials,1);
