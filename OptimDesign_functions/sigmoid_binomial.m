@@ -11,9 +11,9 @@ if ~isempty(chancelevel)
     end
     param.G0 = 1-chancelevel;
     param.S0 = chancelevel;
-    param.beta = 1;
+    param.beta = 1/param.G0;
     param.INV = 0;
-    if nargin==1
+    if nargin==1        
         return
     end
 elseif isempty(param)
@@ -42,6 +42,7 @@ x = u ;
 x = x(:)';
 
 beta = param.beta.*exp(Phi(1));
+
 th = Phi(2);
 
 bx = beta*(x-th);
@@ -49,10 +50,18 @@ Sx = param.G0./(1+exp(-bx));
 Sx = Sx + param.S0;
 
 dsdx = beta*Sx.*(1-Sx./param.G0);
+
+% evaluate derivative wrt x
+% dsdx = b*Sx.*(1-Sx./in.G0);
+
 if nargout < 3 ; return; end
 
 dsdp = zeros(size(Phi,1),length(x));
-dsdp(1,:) = beta.*param.G0./(1+exp(-bx)).^2.*x.*exp(-bx);
+%dsdp(1,:) = beta.*param.G0./(1+exp(-bx)).^2.*x.*exp(-bx);
+
+dsdp(1,:) = (x-th).*param.beta.*dsdx;
+%  dsdp(1,:) = (x-th).*in.beta.*dsdx;
+
 if size(Phi,1) == 2
     dsdp(2,:) = -dsdx;
 end

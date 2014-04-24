@@ -813,7 +813,7 @@ try
             elseif (DATA.Subject.Optimization == 1)
                 % Get the psychometric parameters
                 [DATA.Fit.Psychometric.muPhi, DATA.Fit.Psychometric.SigmaPhi] = OptimDesign('results');                
-                DATA.Fit.Psychometric.SigFit(1) = DATA.Fit.Psychometric.muPhi(1);
+                DATA.Fit.Psychometric.SigFit(1) = exp(DATA.Fit.Psychometric.muPhi(1));
                 DATA.Fit.Psychometric.SigFit(2) = DATA.Fit.Psychometric.muPhi(2);
                 % Define the psychometric function
                 DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));

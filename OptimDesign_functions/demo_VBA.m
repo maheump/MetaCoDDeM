@@ -10,8 +10,13 @@
 clear variables
 close all
 
+g_fname = @sigmoid_binomial;     % observation function`
+chancelevel=0.33%.5%1/16
+g_fname(chancelevel)
+%g_fname = @g_sigm_binomial;
+
 p = 100; % number of trials
-phi = [exp(1.6094);0.3]; % simulated parameters: [log sigmoid slope ; inflexion point]
+phi = [log(20);0.3]; % simulated parameters: [log sigmoid slope ; inflexion point]
 gridu = 0:1e-2:1; % set of potential design control variables
 
 % configure simulation and VBA inversion 
@@ -20,7 +25,7 @@ dim.n_theta = 0;
 dim.n=0;
 dim.n_t = 1;
 dim.p = p;
-g_fname = @g_sigm_binomial;
+%g_fname = @g_sigm_binomial;
 options.binomial = 1;
 options.priors.muPhi = [0;0];
 options.priors.SigmaPhi = p*eye(2);
@@ -75,7 +80,7 @@ for t=1:p
     end
     
     % sample choice according to simulated params
-    sx(t) = g_sigm_binomial([],phi,u(t),[]);
+    sx(t) = g_fname([],phi,u(t),[]);
     [y(t)] = sampleFromArbitraryP([sx(t),1-sx(t)]',[1,0]',1);
     
     % invert model with all inputs and choices
@@ -100,7 +105,7 @@ displayResults(posterior,out,y,[],[],[],phi,[],[])
 % summarize results of adaptive design strategy
 [handles] = displayUncertainSigmoid(posterior,out);
 set(handles.ha0,'nextplot','add')
-qx = g_sigm_binomial([],phi,gridu,[]);
+qx = g_fname([],phi,gridu,[]);
 plot(handles.ha0,gridu,qx,'k--')
 VBA_ReDisplay(posterior,out)
 hf = figure('color',[1 1 1]);

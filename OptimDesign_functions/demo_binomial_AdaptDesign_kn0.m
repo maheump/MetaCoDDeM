@@ -10,8 +10,8 @@ g_fname = @g_sigm_binomial
 f_fname = [];                   % evolution function (learning)
 
 p = 1e2; %  number of trials
-phi = [15;.42]; % simulated parameters: [log sigmoid slope ; inflexion point]
-gridu = .1:1e-1:1; % set of potential design control variables
+phi = [log(20);.42]; % simulated parameters: [log sigmoid slope ; inflexion point]
+gridu = 00:1e-2:1; % set of potential design control variables
 optimDesign = 0; % if 1: further optimize design locally
 
 % get binomial sampling probabilities
