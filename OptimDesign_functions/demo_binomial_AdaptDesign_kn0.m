@@ -4,7 +4,8 @@ clear variables
 close all
 
 g_fname = @sigmoid_binomial;     % observation function`
-g_fname(1/16)
+chancelevel=1/16
+g_fname(chancelevel)
 %g_fname = @g_sigm_binomial
 f_fname = [];                   % evolution function (learning)
 
