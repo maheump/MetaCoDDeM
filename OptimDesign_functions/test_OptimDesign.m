@@ -28,7 +28,7 @@ efficiency = zeros(NTrials,1);
 for Trial_number=1:NTrials
     [DATA.Paradigm.Phasis1.Coherences(Trial_number),efficiency(Trial_number)] = OptimDesign('nexttrial');
     
-    t = Trial_number
+    t = Trial_number;
     % This is our Pseudo subject
     proba(t)  = DATA.Fit.Psychometric.Func([],phi,DATA.Paradigm.Phasis1.Coherences(Trial_number),[]);
     % Response by this pseudo subject
@@ -40,7 +40,7 @@ for Trial_number=1:NTrials
     OptimDesign('register',DATA.Answers.Correction(Trial_number,1));
     
     % monitor
-    [m]=OptimDesign('results')
+    [m(:,Trial_number)]=OptimDesign('results');
     
 end                    
 
