@@ -10,8 +10,8 @@
 clear variables
 close all
 
-p = 1e2; % number of trials
-phi = [exp(1.0986);0.3]; % simulated parameters: [log sigmoid slope ; inflexion point]
+p = 100; % number of trials
+phi = [exp(1.6094);0.3]; % simulated parameters: [log sigmoid slope ; inflexion point]
 gridu = 0:1e-2:1; % set of potential design control variables
 
 % configure simulation and VBA inversion 
@@ -22,8 +22,8 @@ dim.n_t = 1;
 dim.p = p;
 g_fname = @g_sigm_binomial;
 options.binomial = 1;
-options.priors.muPhi = [exp(1.5);0];
-options.priors.SigmaPhi = 1e2*eye(2);
+options.priors.muPhi = [0;0];
+options.priors.SigmaPhi = p*eye(2);
 options.DisplayWin = 0;
 options.verbose = 0;
 opt = options;

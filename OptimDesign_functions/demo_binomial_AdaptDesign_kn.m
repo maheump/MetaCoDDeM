@@ -18,7 +18,7 @@ phi = [2.5; 0.15]; % simulated parameters: [log sigmoid slope ; inflexion point]
 
 p = 100; % Nombre de trials
 gridu = 0:.01:1; % Variables de design potentielles
-gridu = -1:.01:1; 
+gridu = -1:.01:1;
 
 % configure simulation and VBA inversion 
 dim.n_phi = 2;
