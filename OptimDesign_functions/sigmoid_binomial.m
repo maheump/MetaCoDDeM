@@ -49,6 +49,10 @@ bx = beta*(x-th);
 Sx = param.G0./(1+exp(-bx));
 Sx = Sx + param.S0;
 
+
+% Récupérer les dérivés dX et db et dt de:
+% http://www.wolframalpha.com/input/?i=d%2FdX%5BS+%2B+G+%2F%281+%2B+exp%28-b*%28X-t%29%29%29%5D
+
 dsdx = beta*Sx.*(1-Sx./param.G0);
 
 % evaluate derivative wrt x
