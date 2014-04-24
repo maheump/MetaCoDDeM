@@ -12,10 +12,13 @@ close all
 
 % Pour nous, paramètre de design = niveau de cohérence
 
+phi = [3; .10]; % Paramètres simulés [log sigmoid slope ; inflexion point]
+phi = [1.3 ; .5];
+phi = [2.5; 0.15]; % simulated parameters: [log sigmoid slope ; inflexion point]
 
 p = 100; % Nombre de trials
-phi = [3;.10]; % Paramètres simulés [log sigmoid slope ; inflexion point]
 gridu = 0:.01:1; % Variables de design potentielles
+gridu = -1:.01:1; 
 
 % configure simulation and VBA inversion 
 dim.n_phi = 2;
@@ -24,6 +27,9 @@ dim.n=0;
 dim.n_t = 1;
 dim.p = p;
 g_fname = @g_sigm_binomial;
+
+%g_fname = @sigmoid_binomial
+
 options.binomial = 1;
 options.priors.muPhi = [0;0];
 options.priors.SigmaPhi = 1e2*eye(2);
@@ -83,7 +89,7 @@ for t=1:p
     
     % Choisit une réponse à partir des paramètres de la sigmoïde entrée et au début et en fonction du paramètre de design présenté à ce trial
     sx(t) = g_sigm_binomial([],phi,u(t),[]); % u est le paramètre de design et phi les paramètres de la sigmoïde
-    [y(t)] = sampleFromArbitraryP([sx(t),1-sx(t)]',[1,-1]',1);
+    [y(t)] = sampleFromArbitraryP([sx(t),1-sx(t)]',[1,0]',1);
     
     % invert model with all inputs and choices
     dim.p = t;
@@ -102,6 +108,9 @@ end
 
 % compare final estimates with simulations
 displayResults(posterior,out,y,[],[],[],phi,[],[])
+
+
+
 
 
 % summarize results of adaptive design strategy
