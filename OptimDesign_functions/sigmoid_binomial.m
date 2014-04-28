@@ -1,11 +1,14 @@
-function [Sx,dsdx,dsdp] = g_sigm_binomial(chancelevel,Phi,u,varargin)
+function [Sx,dsdx,dsdp] = sigmoid_binomial(chancelevel,Phi,u,varargin)
 % Evaluates the sigmoid function for binomial data analysis
 if nargin>3 && ~isempty(varargin{1})
     varargin{:}
 end
 persistent param
 if ~isempty(chancelevel)
-    fprintf('Adjusting for chance level: %g%%\n', chancelevel*100);
+    if nargin>1
+		error('To adjust the chance level, please use: sigmoid_binomial(chancelevel) ONLY!')
+	end
+	fprintf('Adjusting for chance level: %g%%\n', chancelevel*100);
     if ~isempty(param)
         fprintf('Previous chance level was: %g%%\n', param.S0*100);
     end
