@@ -13,7 +13,8 @@ close all
 g_fname = @sigmoid_binomial; % observation function
 chancelevel = 0; % 0 0.5 1/24
 g_fname(chancelevel);
-% g_fname = @g_sigm_binomial; % observation function
+g_fname = @g_sigm_binomial; % observation function
+g_fname(chancelevel);
 
 p = 100; % number of trials
 phi = [log(20);0.3]; % simulated parameters: [log sigmoid slope ; inflexion point]

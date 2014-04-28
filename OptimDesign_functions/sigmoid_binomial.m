@@ -47,14 +47,10 @@ beta = param.beta.*exp(Phi(1));
 th = Phi(2);
 
 bx = beta*(x-th);
-Sx = param.G0./(1+exp(-bx)); % Il y a un moins devant le bx, ça me semble bizarre (pour le calcul de la dérivée en tout les cas) ...
+Sx = param.G0./(1+exp(-bx));
 Sx = Sx + param.S0;
+Sx
 
-% Récupérer les dérivés dX et db et dt de:
-% http://www.wolframalpha.com/input/?i=d%2FdX%5BS+%2B+G+%2F%281+%2B+exp%28-b*%28X-t%29%29%29%5D
-
-% Avec chaque membre spécifié ERREUR
-%  
 % dP/dx = (beta*param.G0*exp(beta*(th-x)))/((exp(beta*(th-x))+1)^2);
 % dP/dx = (beta*param.G0*exp(beta*(x-th)))/((exp(beta*(x-th))+1)^2);
 
@@ -74,7 +70,8 @@ Sx = Sx + param.S0;
 % dsdx = -(beta*param.G0*exp(beta*(x-th)))/((exp(beta*(x-th))+1)^2);
 
 % Formule MBB
-dsdx = beta*Sx.*(1-Sx./param.G0); % On prend le beta dans la dérivée, or le dernier définit contient Phi(1) dans sa valeur, est-ce normal ?
+dsdx = beta*Sx.*(1-Sx./param.G0);
+Sx
 
 % Wolfram:
 % S(x) = S + G/(1+exp(-b*(x-th)))
@@ -82,8 +79,11 @@ dsdx = beta*Sx.*(1-Sx./param.G0); % On prend le beta dans la dérivée, or le dern
 % dsdx = (b*G*exp(b*(th+x)))/((exp(b*th)+exp(b*x))^2);
 % dsdx = (b*G*exp(b*(th-x)))/(exp(b*(th-x))+1)^2;
 % dsdx = (b*G*exp(b*(x-th)))/(exp(b*(x-th))+1)^2;
-dsdx = (beta*param.G0*exp(beta*(x-th)))/(exp(beta*(x-th))+1)^2;
 
+% Formule de Karim
+% dsdx = (beta*(param.G0+(param.G0./(1+exp(-bx)))))/(exp(beta*(x-th))+1)^2;
+% Formule de Maxime
+% dsdx = (beta*(param.G0+(param.G0./(1+exp(-bx)))))*((1-(param.G0+(param.G0./(1+exp(-bx)))))/param.G0);
 
 % Donc si: 
 % Sx  = S0 + G0./(1+exp(-bx))
@@ -91,20 +91,20 @@ dsdx = (beta*param.G0*exp(beta*(x-th)))/(exp(beta*(x-th))+1)^2;
 % alors : dsdx =  beta * (S0 + G0/(1+exp(-beta*(x-th)))) * (1 - (S0 + G0/(1+exp(-beta*(x-th))))/G0)
 
 % evaluate derivative wrt x
-% dsdx = b*Sx.*(1-Sx./in.G0);
+% dsdx = b*Sx.*(1-Sx./in.G0); % Celle de sigm.m
 
 if nargout < 3 ; return; end
 
 dsdp = zeros(size(Phi,1),length(x));
 %dsdp(1,:) = beta.*param.G0./(1+exp(-bx)).^2.*x.*exp(-bx);
 
-%Formule MBB :
+% Formule MBB (la bonne) : 
 dsdp(1,:) = (x-th).*param.beta.*dsdx;
 
-%D'après Wolfram, c'est plutôt : 
-%dsdp(1,:) = (x-th)./param.beta.*dsdx;
+% D'après Wolfram, c'est plutôt : 
+% dsdp(1,:) = (x-th)./param.beta.*dsdx;
 
-%  dsdp(1,:) = (x-th).*in.beta.*dsdx;
+% dsdp(1,:) = (x-th).*in.beta.*dsdx; % Dans sigm.m c'est bien cette formule (Wolfram a tord => c'est la formule initiale (primitive) qui est donc erronnée).
 
 if size(Phi,1) == 2
     dsdp(2,:) = -dsdx;
@@ -112,3 +112,7 @@ end
 dsdp(isnan(dsdp)) = 0;
 
 dsdx = [];
+
+% vérifié : bx, beta
+% Il n'y a pas qu'un seul Sx car param.G0 est une structure de taille
+% différente
