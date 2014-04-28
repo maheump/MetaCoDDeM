@@ -10,10 +10,10 @@
 clear variables
 close all
 
-g_fname = @sigmoid_binomial;     % observation function`
-chancelevel = 0%.5%1/16
-g_fname(chancelevel)
-%g_fname = @g_sigm_binomial;
+g_fname = @sigmoid_binomial; % observation function
+chancelevel = 0; % 0 0.5 1/24
+g_fname(chancelevel);
+%g_fname = @g_sigm_binomial; % observation function
 
 p = 100; % number of trials
 phi = [log(20);0.3]; % simulated parameters: [log sigmoid slope ; inflexion point]
@@ -25,7 +25,6 @@ dim.n_theta = 0;
 dim.n=0;
 dim.n_t = 1;
 dim.p = p;
-%g_fname = @g_sigm_binomial;
 options.binomial = 1;
 options.priors.muPhi = [0;0];
 options.priors.SigmaPhi = p*eye(2);

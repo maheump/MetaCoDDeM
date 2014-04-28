@@ -73,16 +73,16 @@ Sx = Sx + param.S0;
 % dsdx = -(beta*param.G0*exp(beta*(th-x)))/((exp(beta*(th-x))+1)^2);
 % dsdx = -(beta*param.G0*exp(beta*(x-th)))/((exp(beta*(x-th))+1)^2);
 
-% Formule MBB
-dsdx = beta*Sx.*(1-Sx./param.G0); % On prend le beta dans la dérivée, or le dernier définit contient Phi(1) dans sa valeur, est-ce normal ?
-
 % Wolfram:
-% S(x) = S + G/(1+exp(-b*(x-th)))
-% ds/dx =
-% dsdx = (b*G*exp(b*(th+x)))/((exp(b*th)+exp(b*x))^2);
-% dsdx = (b*G*exp(b*(th-x)))/(exp(b*(th-x))+1)^2;
-% dsdx = (b*G*exp(b*(x-th)))/(exp(b*(x-th))+1)^2;
-dsdx = (beta*param.G0*exp(beta*(x-th)))/(exp(beta*(x-th))+1)^2;
+% P(x) = S + G/(1+exp(-b*(x-th)))
+% dP/dx =
+% dPdx = (b*G*exp(b*(th+x)))/((exp(b*th)+exp(b*x))^2);
+% dPdx = (b*G*exp(b*(th-x)))/(exp(b*(th-x))+1)^2;
+% dPdx = (b*G*exp(b*(x-th)))/(exp(b*(x-th))+1)^2;
+
+% Formule MBB
+dsdx = beta*Sx.*(1-Sx./param.G0); % On prend le beta dans le dérivée, or le dernier définit contient Phi(1) dans sa valeur, est-ce normal ?
+
 
 
 % Donc si: 
