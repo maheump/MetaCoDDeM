@@ -13,8 +13,7 @@ close all
 g_fname = @sigmoid_binomial; % observation function
 chancelevel = 0; % 0 0.5 1/24
 g_fname(chancelevel);
-g_fname = @g_sigm_binomial; % observation function
-g_fname(chancelevel);
+% g_fname = @g_sigm_binomial; % observation function
 
 p = 100; % number of trials
 phi = [log(20);0.3]; % simulated parameters: [log sigmoid slope ; inflexion point]
@@ -53,7 +52,6 @@ eu = zeros(p,1);
 mu = zeros(dim.n_phi,p);
 va = zeros(dim.n_phi,p);
 for t=1:p
-    
     % update prior for design efficiency derivation
     dim.p = 1;
     opt.priors = posterior;
@@ -78,7 +76,6 @@ for t=1:p
         plot(ha2,gridu(ind),e(ind),'go')
         drawnow
     end
-    
     % sample choice according to simulated params
     sx(t) = g_fname([],phi,u(t),[]);
     [y(t)] = sampleFromArbitraryP([sx(t),1-sx(t)]',[1,0]',1);

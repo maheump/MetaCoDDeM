@@ -11,7 +11,7 @@ clear variables
 close all
 
 g_fname = @sigmoid_binomial; % observation function
-chancelevel = 0.1; % 0 0.5 1/24
+chancelevel = 0; % 0 0.5 1/24
 g_fname(chancelevel);
 % g_fname = @g_sigm_binomial; % observation function
 
@@ -52,7 +52,6 @@ eu = zeros(p,1);
 mu = zeros(dim.n_phi,p);
 va = zeros(dim.n_phi,p);
 for t=1:p
-    
     % update prior for design efficiency derivation
     dim.p = 1;
     opt.priors = posterior;
@@ -77,7 +76,6 @@ for t=1:p
         plot(ha2,gridu(ind),e(ind),'go')
         drawnow
     end
-    
     % sample choice according to simulated params
     sx(t) = g_fname([],phi,u(t),[]);
     [y(t)] = sampleFromArbitraryP([sx(t),1-sx(t)]',[1,0]',1);

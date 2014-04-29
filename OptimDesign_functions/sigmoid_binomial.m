@@ -1,5 +1,6 @@
 function [Sx,dsdx,dsdp] = sigmoid_binomial(chancelevel,Phi,u,varargin)
 % Evaluates the sigmoid function for binomial data analysis
+% Ne mettre que Sx
 if nargin>3 && ~isempty(varargin{1})
     varargin{:}
 end
@@ -52,8 +53,8 @@ th = Phi(2);
 bx = beta*(x-th);
 Sx = param.G0./(1+exp(-bx));
 Sx = Sx + param.S0;
-Sx
-param.G0
+
+% beta*(param.G0./(1+exp(-(beta*(x-th))))).*(1-(param.G0./(1+exp(-(beta*(x-th)))))./param.G0)
 
 % dP/dx = (beta*param.G0*exp(beta*(th-x)))/((exp(beta*(th-x))+1)^2);
 % dP/dx = (beta*param.G0*exp(beta*(x-th)))/((exp(beta*(x-th))+1)^2);
@@ -75,8 +76,6 @@ param.G0
 
 % Formule MBB
 dsdx = beta*Sx.*(1-Sx./param.G0);
-Sx
-param.G0
 
 % Wolfram:
 % S(x) = S + G/(1+exp(-b*(x-th)))
@@ -88,7 +87,7 @@ param.G0
 % Formule de Karim
 % dsdx = (beta*(param.G0+(param.G0./(1+exp(-bx)))))/(exp(beta*(x-th))+1)^2;
 % Formule de Maxime
-% dsdx = (beta*(param.G0+(param.G0./(1+exp(-bx)))))*((1-(param.G0+(param.G0./(1+exp(-bx)))))/param.G0);
+% dsdx = beta*(param.G0./(1+exp(-(beta*(x-th))))).*(1-(param.G0./(1+exp(-(beta*(x-th)))))./param.G0); FONCTIONNE POUR TOUS LES CHANCE LEVELS
 
 % Donc si: 
 % Sx  = S0 + G0./(1+exp(-bx))
