@@ -53,6 +53,7 @@ bx = beta*(x-th);
 Sx = param.G0./(1+exp(-bx));
 Sx = Sx + param.S0;
 Sx
+param.G0
 
 % dP/dx = (beta*param.G0*exp(beta*(th-x)))/((exp(beta*(th-x))+1)^2);
 % dP/dx = (beta*param.G0*exp(beta*(x-th)))/((exp(beta*(x-th))+1)^2);
@@ -75,6 +76,7 @@ Sx
 % Formule MBB
 dsdx = beta*Sx.*(1-Sx./param.G0);
 Sx
+param.G0
 
 % Wolfram:
 % S(x) = S + G/(1+exp(-b*(x-th)))

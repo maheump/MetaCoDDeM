@@ -11,7 +11,7 @@ clear variables
 close all
 
 g_fname = @sigmoid_binomial; % observation function
-chancelevel = 0; % 0 0.5 1/24
+chancelevel = 0.1; % 0 0.5 1/24
 g_fname(chancelevel);
 % g_fname = @g_sigm_binomial; % observation function
 
