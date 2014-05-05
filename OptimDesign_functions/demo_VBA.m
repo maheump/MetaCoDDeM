@@ -17,18 +17,18 @@ g_fname(chancelevel);
 g_fname = @g_sigplus; % observation function
 
 p = 100; % number of trials
-phi = [-3;-1;1]; % simulated parameters: [log sigmoid slope ; inflexion point]
-gridu = 0:5e-2:10; % set of potential design control variables
+phi = [15;.5;.5]; % simulated parameters: [log sigmoid slope ; inflexion point]
+gridu = 0.01:0.01:1; % set of potential design control variables
 
 % configure simulation and VBA inversion 
-dim.n_phi = 3;
+dim.n_phi = 2;
 dim.n_theta = 0;
 dim.n=0;
 dim.n_t = 1;
 dim.p = p;
 options.binomial = 1;
-options.priors.muPhi = [0;0;0];
-options.priors.SigmaPhi = eye(3);
+options.priors.muPhi = [0;0];
+options.priors.SigmaPhi = eye(2);
 options.DisplayWin = 0;
 options.verbose = 0;
 opt = options;
@@ -95,16 +95,14 @@ for t=1:p
     
 end
 
-
 % compare final estimates with simulations
 displayResults(posterior,out,y,[],[],[],phi,[],[])
 
-
 % summarize results of adaptive design strategy
-% [handles] = displayUncertainSigmoid(posterior,out);
-% set(handles.ha0,'nextplot','add')
-% qx = g_fname([],phi,gridu,[]);
-% plot(handles.ha0,gridu,qx,'k--')
+[handles] = displayUncertainSigmoid(posterior,out);
+set(handles.ha0,'nextplot','add')
+qx = g_fname([],phi,gridu,[]);
+plot(handles.ha0,gridu,qx,'k--')
 VBA_ReDisplay(posterior,out)
 hf = figure('color',[1 1 1]);
 ha = axes('parent',hf);
