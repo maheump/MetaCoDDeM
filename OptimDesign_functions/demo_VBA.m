@@ -10,10 +10,13 @@
 clear variables
 close all
 
+<<<<<<< HEAD
 g_fname = @sigmoid_binomial_nogradients; % observation function
 chancelevel = 0.24; % 0 0.5 1/24
 g_fname(chancelevel);
 % g_fname = @g_sigm_binomial; % observation function
+=======
+>>>>>>> acaad5c7adcd9d8bb3a7c8c40ce3cc726843da05
 g_fname = @g_sigplus; % observation function
 
 p = 100; % number of trials
