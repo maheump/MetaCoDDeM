@@ -29,12 +29,9 @@ function y = sigmf(x, params, chancelevel)
 %   Copyright 1994-2002 The MathWorks, Inc. 
 %   $Revision: 1.18 $  $Date: 2002/04/14 22:20:56 $
 
-if nargin ~= 2
-    error('Two arguments are required by the sigmoidal MF.');
-elseif length(params) < 2
-    error('The sigmoidal MF needs at least two parameters.');
+if nargin == 1
+    error('At least two arguments are required by the sigmoidal MF.');
 end
-
 if nargin<3
     chancelevel = 0;
 end

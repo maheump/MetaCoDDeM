@@ -10,14 +10,15 @@
 clear variables
 close all
 
+chancelevel = 0.5; % 0 0.5 1/24
+sigmoid_binomial_nogradients(chancelevel);
 g_fname = @sigmoid_binomial_nogradients; % observation function
-chancelevel = 0.24; % 0 0.5 1/24
-g_fname(chancelevel);
+% g_fname = @sigmoid_binomial; % observation function
 % g_fname = @g_sigm_binomial; % observation function
-g_fname = @g_sigplus; % observation function
+% g_fname = @g_sigplus; % observation function
 
 p = 100; % number of trials
-phi = [15;.5;.5]; % simulated parameters: [log sigmoid slope ; inflexion point]
+phi = [log(20);0.25]; % simulated parameters: [log sigmoid slope ; inflexion point]
 gridu = 0.01:0.01:1; % set of potential design control variables
 
 % configure simulation and VBA inversion 
@@ -92,7 +93,6 @@ for t=1:p
         cla(ha)
         plotUncertainTimeSeries(mu(:,1:t),sqrt(va(:,1:t)),[],ha);
     end
-    
 end
 
 % compare final estimates with simulations
