@@ -72,8 +72,7 @@ switch action
         % Use it to probe the participant        
         varargout = { u(best_index) e(best_index) best_index };
         Fit.u(Fit.trial) = u(best_index);
-        Fit.efficency(Fit.trial) =  e(best_index);        
-   
+        Fit.efficency(Fit.trial) =  e(best_index);   
         
     case 'register'
         % We register what the subject's response was
@@ -130,7 +129,7 @@ switch action
         set(ha02,'xlim',xl0);
         xlabel(ha02,'u: design control variable (coherency)')
         ylabel(ha02,'empirical distribution of u')
-% compare final estimates with simulations
+        % compare final estimates with simulations
         displayResults(posterior,out,y,[],[],[],phi,[],[])        
         
         % summarize results of adaptive design strategy

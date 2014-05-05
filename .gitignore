@@ -1,6 +1,5 @@
 /_gsdata_
 OptimDesign_functions/Fit.mat
-
 OptimDesign_functions/sigmoid_binomial_16AFC.m
-
 OptimDesign_functions/.DS_Store
+*.m~

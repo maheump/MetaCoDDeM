@@ -4,16 +4,15 @@ clear
 % Set the chancelevel used within the sigmoid:
 chancelevel = 0;%1/16;%.5;
 chancelevel = 0.5;
-sigmoid_binomial(chancelevel);
-DATA.Fit.Psychometric.Func = @sigmoid_binomial;%(u,Phi) sigm(u,struct('G0',1,'S0',0,'beta',1,'INV',0),Phi);
+sigmoid_binomial_nogradients(chancelevel);
+DATA.Fit.Psychometric.Func = @sigmoid_binomial_nogradients;%(u,Phi) sigm(u,struct('G0',1,'S0',0,'beta',1,'INV',0),Phi);
+%DATA.Fit.Psychometric.Func = @g_sigm_binomial;
 
-DATA.Fit.Psychometric.Func = @g_sigm_binomial;
 
-
-DATA.Fit.Psychometric.Estimated = [30;0.5];
+DATA.Fit.Psychometric.Estimated = [log(30);0.5];
 DATA.Fit.Psychometric.EstimatedVariance = 1e2*eye(2);
 
-DATA.Fit.Psychometric.GridU = -1:2e-2:1;
+DATA.Fit.Psychometric.GridU = 0:1e-2:1;
 
 OptimDesign('initialize', ...
     DATA.Fit.Psychometric.Func, ...
@@ -21,14 +20,14 @@ OptimDesign('initialize', ...
     DATA.Fit.Psychometric.EstimatedVariance, ...
     DATA.Fit.Psychometric.GridU);
 
-phi = [25 ; .25];
+phi = [ log(25) ; .25];
 
 NTrials = 100;
 efficiency = zeros(NTrials,1);
 
 for Trial_number=1:NTrials
     [DATA.Paradigm.Phasis1.Coherences(Trial_number),efficiency(Trial_number)] = OptimDesign('nexttrial');
-    
+    fprintf('Trial %d\n',Trial_number);
     t = Trial_number;
     % This is our Pseudo subject
     proba(t)  = DATA.Fit.Psychometric.Func([],phi,DATA.Paradigm.Phasis1.Coherences(Trial_number),[]);
