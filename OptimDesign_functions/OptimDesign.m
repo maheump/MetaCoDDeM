@@ -76,8 +76,14 @@ switch action
         
     case 'register'
         % We register what the subject's response was
+        if nargin>2
+            % Use: OptimDesign('register', response, value, trial)
+            Fit.trial = varargin{3};
+            Fit.u(Fit.trial) = varargin{2};
+            fprintf('Registering %g with imposed value %g on trial %d...\n',varargin{1},varargin{2},varargin{3});            
+        end
         Fit.answers(Fit.trial) = varargin{1};
-        
+
         % Invert model with all previous trials
         dim = Fit.dim;
         dim.p = Fit.trial;
@@ -145,7 +151,10 @@ switch action
         xlabel(ha,'trials')
         box(ha,'off')
         set(ha,'ygrid','on')
-
+        
+    case 'state'
+        varagout{1} = Fit;
+        
 end
 if nargout == numel(varargout)+1
     varargout = [varargout Fit];
