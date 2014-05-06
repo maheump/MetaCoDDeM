@@ -32,9 +32,13 @@ param.mat = 0;
 x = u ;
 x = x(:)';
 
-beta = param.beta.*exp(Phi(1));
-
 th = Phi(2);
+% beta = param.beta.*exp(Phi(1));
+b_min = atan((param.S0+1)/(2*th));
+beta = param.beta.*(b_min + exp(Phi(1)));
+
+
+
 
 bx = beta*(x-th);
 Sx = param.G0./(1+exp(-bx));
