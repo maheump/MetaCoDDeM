@@ -9,7 +9,7 @@ DATA.Fit.Psychometric.Func = @sigmoid_binomial_nogradients; %(u,Phi) sigm(u,stru
 DATA.Fit.Psychometric.Estimated = [log(30);0.5];
 DATA.Fit.Psychometric.EstimatedVariance = 1e2*eye(2);
 
-DATA.Fit.Psychometric.GridU = 0.1:1e-2:1;
+DATA.Fit.Psychometric.GridU = 0.1:1e-2:2;
 
 % Initialize the bayesian gas factory
 OptimDesign('initialize', ...
@@ -18,7 +18,7 @@ OptimDesign('initialize', ...
     DATA.Fit.Psychometric.EstimatedVariance, ...
     DATA.Fit.Psychometric.GridU);
 
-phi = [log(20);0.25];
+phi = [8;0.25];
 
 NTrials = 100;
 efficiency = zeros(NTrials,1);
@@ -26,14 +26,14 @@ efficiency = zeros(NTrials,1);
 initial_grid = [];
 
 % Prepare the graph window
-x = 0:0.001:1;
+x = min(DATA.Fit.Psychometric.GridU):0.001:max(DATA.Fit.Psychometric.GridU);
 y_target = sigmf(x, phi, chancelevel);
 fig = figure(1);
 plot(x, y_target, 'r-.');
 hold on
 plot(x, chancelevel, 'r');
 hold on
-axis([0, 1, 0, 1]);
+axis([min(DATA.Fit.Psychometric.GridU), max(DATA.Fit.Psychometric.GridU), 0, 1]);
 
 % At each trial
 for Trial_number = 1:NTrials
