@@ -18,10 +18,12 @@ OptimDesign('initialize', ...
     DATA.Fit.Psychometric.EstimatedVariance, ...
     DATA.Fit.Psychometric.GridU);
 
-phi = [20;0.25];
+phi = [log(20);0.25];
 
 NTrials = 100;
 efficiency = zeros(NTrials,1);
+
+initial_grid = [];
 
 % Prepare the graph window
 x = 0:0.001:1;
@@ -35,6 +37,10 @@ axis([0, 1, 0, 1]);
 
 % At each trial
 for Trial_number = 1:NTrials
+    
+    if (size(initial_grid, 1) ~= 0)
+        % update MBB-VBA with it befor starting optimization
+    end
     
     [DATA.Paradigm.Phasis1.Coherences(Trial_number),efficiency(Trial_number)] = OptimDesign('nexttrial');
     

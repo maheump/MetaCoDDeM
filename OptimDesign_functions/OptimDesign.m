@@ -36,7 +36,7 @@ switch action
         dim.p = 1;
         Fit.dim = dim;
         % options for the optimizer
-        options.binomial = .014;
+        options.binomial = 1;
         options.DisplayWin = 0;
         options.verbose = 0;
         Fit.opt_init = options; 
