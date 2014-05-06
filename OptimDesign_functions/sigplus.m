@@ -1,9 +1,9 @@
 function gx = sigplus(x,P,u,in)
 % Jean Daunizeau's function
+s=.4 ;
 
-s = sig(P(1));
-b = exp(P(2));
-t = P(3);
+b = exp(P(1));
+t = P(2);
 
 gx = s + (1-s)./(1+exp(-b.*(u-t)));
 end
