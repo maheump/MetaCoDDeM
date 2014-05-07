@@ -29,7 +29,7 @@ end
 param.deriv = 0;
 param.mat = 0;
 
-x = u ;
+x = u;
 x = x(:)';
 
 th = Phi(2);
@@ -41,13 +41,13 @@ beta_max = param.G0/.01;
 %beta = (sigm(beta)-.5)*2*beta_max;
 %beta = min(beta,beta_max);
 
+%%%%%
+% beta_max = log(sqrt((0.1^2)+(1-chancelevel)));
+%%%%%
+
 bx = beta*(x-th);
 Sx = param.G0./(1+exp(-bx));
 Sx = Sx + param.S0;
-
-return
-
-
 
 dsdx = beta*Sx.*(1-Sx./param.G0);
 
