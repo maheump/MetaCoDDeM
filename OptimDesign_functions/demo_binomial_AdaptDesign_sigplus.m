@@ -13,7 +13,10 @@ close all
 
 p = 1e2; %  number of trials
 phi = [2;-1]; % simulated parameters: [log sigmoid slope ; inflexion point]
+phi = [log(30);.2392]; % simulated parameters: [log sigmoid slope ; inflexion point]
+
 gridu = -2:5e-2:2; % set of potential design control variables
+
 
 % configure simulation and VBA inversion 
 dim.n_phi = 2;
@@ -92,7 +95,7 @@ for t=1:p
     end
     
 end
-
+return
 
 % compare final estimates with simulations
 displayResults(posterior,out,y,[],[],[],phi,[],[])

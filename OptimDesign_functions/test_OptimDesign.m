@@ -106,19 +106,20 @@ while Trial_number < NTrialsmax && efficiency(Trial_number) < MinEfficiency
     
     try
         delete(bayesian_guess);
+        clear bayesian_guess
     end
-    bayesian_guess = plot(x, y_arrow, 'b-');
-    bayesian_guess(2) = bar(0.05:.05:1,histc([DATA.Paradigm.Phasis1.Coherences],[0.05:.05:.95 1])/100);
-    bayesian_guess(3) = bar(0.05:.05:1,histc([DATA.Paradigm.Phasis1.Coherences(y==1)],[0.05:.05:.95 1])/100,'FaceColor','g');
+    BINS = [0.05:.05:.95 1];
     
-    bayesian_guess(4) = plot(0.05:.05:1,...
-        histc([DATA.Paradigm.Phasis1.Coherences(y==1)],[0.05:.05:.95 1])./...
-        histc([DATA.Paradigm.Phasis1.Coherences      ],[0.05:.05:.95 1]),'ko');
+    [hc{1,1},hc{1,2}]= histc([DATA.Paradigm.Phasis1.Coherences]      ,BINS);
+    [hc{2,1},hc{2,2}]= histc([DATA.Paradigm.Phasis1.Coherences(y==1)],BINS);
     
+    bayesian_guess(2) = bar(BINS,hc{1,1}/100);
+    bayesian_guess(3) = bar(BINS,hc{2,1}/100,'FaceColor','g');
     bayesian_guess(5) = bar(.95, 1+efficiency(Trial_number), .05, 'FaceColor','m');
-    
-    fit = OptimDesign('state');
-    
+    for i=1:numel(BINS)        
+        bayesian_guess(end+1) = plot(BINS(i),hc{1,1}(i)./hc{2,1}(i),'kp','MarkerSize',max(1,round(hc{1}(i))));
+    end
+    fit = OptimDesign('state');        
     for t=DATA.Fit.Psychometric.GridU(1:10:end)
         for i=1:100
             s(i) = DATA.Fit.Psychometric.Func([],[ ...
@@ -127,6 +128,9 @@ while Trial_number < NTrialsmax && efficiency(Trial_number) < MinEfficiency
         end
         bayesian_guess = [ bayesian_guess ploterr(t, mean(s), std(s),'Color',[1 1 1]*.9)];
     end
+    
+    bayesian_guess(1) = plot(x, y_arrow, 'b-');
+ 
     
     
     %     options.priors = fit.posterior(end);
