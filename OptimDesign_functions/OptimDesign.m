@@ -72,7 +72,7 @@ switch action
         % Use it to probe the participant        
         varargout = { u(best_index) e(best_index) best_index };
         Fit.u(Fit.trial) = u(best_index);
-        Fit.efficency(Fit.trial) =  e(best_index);   
+        Fit.efficency(Fit.trial) = e(best_index);
         
     case 'register'
         % We register what the subject's response was
