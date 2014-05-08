@@ -95,7 +95,6 @@ for t=1:p
     end
     
 end
-return
 
 % compare final estimates with simulations
 displayResults(posterior,out,y,[],[],[],phi,[],[])
