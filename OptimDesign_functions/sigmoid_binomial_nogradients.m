@@ -7,10 +7,6 @@ persistent param
 if ~isempty(chancelevel)
     if nargin>1
 		error('To adjust the chance level, please use: sigmoid_binomial_nogradients(chancelevel) ONLY!')
-	end
-	fprintf('Adjusting for chance level: %g%%\n', chancelevel*100);
-    if ~isempty(param)
-        fprintf('Previous chance level was: %g%%\n', param.S0*100);
     end
     param.G0 = 1-chancelevel;
     param.S0 = chancelevel;
