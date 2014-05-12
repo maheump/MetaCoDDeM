@@ -1,6 +1,6 @@
 %%%% Test VBA on METACODDEM (with chance level) %%%%
 
-clear all; close all; clc
+clearvars -except Loop Loops Fit_quality; close all; clc
 
 %% Set some parameters (chance, grid, etc.)
 
@@ -28,13 +28,13 @@ DATA.Fit.Psychometric.Init = OptimDesign('initialize', ...
 
 %% Define the targetted theoretical parameters
 
-Theroretical_parameters = [log(30); 0.2392];
+Theroretical_parameters = [log(30), 0.3]; %[log(randi([20, 100])); randi([1, 30])/100];
 fprintf(' Setting theoretical curve parameters: beta = %g, theta = %g.\n', Theroretical_parameters);
 
 %% Create our pseudo-subject
 
-Pseudo_subject = @(phi, c) ...
-    sampleFromArbitraryP([DATA.Fit.Psychometric.Function([], phi, c),1-DATA.Fit.Psychometric.Function([], phi, c)]', [1, 0]', 1);
+%Pseudo_subject = @(phi, c) ...
+    %sampleFromArbitraryP([DATA.Fit.Psychometric.Function([], phi, c), 1 - DATA.Fit.Psychometric.Function([], phi, c)]', [1, 0]', 1);
 Pseudo_subject = @(phi, c) rand(size(c)) <= DATA.Fit.Psychometric.Function([], phi, c);
 
 %% Prepare the graph window
@@ -106,8 +106,8 @@ end
 fprintf('\nPHASE 2: SCREENING\n');
 
 Previous_trials = size(DATA.Paradigm.Phasis1.Coherences, 2);
-Screening_window = [0.1, 0.5];
-Screning_interval = 0;
+Screening_window = [0.01, 0.6];
+Screning_interval = 0;%20;
 Screening_levels = Shuffle((round(linspace(Screening_window(1), Screening_window(2), Screning_interval)*100))/100);
 Screening_trials = size(Screening_levels, 2);
 
@@ -145,6 +145,9 @@ for Trial_number = (1 + Training_trials + Screening_trials):(Training_trials + S
     % Ask the optimizater the most informative coherence Forced_level it could find (and its relative efficiency)
     [DATA.Paradigm.Phasis1.Coherences(Previous_trials + Trial_number - Training_trials - Screening_trials), ...
         DATA.Fit.Psychometric.Efficiency(Trial_number - Training_trials - Screening_trials)] = OptimDesign('nexttrial');
+    
+    % Mettre une précaution s'il demande plus de 5 fois de suite le même
+    % niveau de cohérence !
     
     % Ask the pseudo-subject his answer
     DATA.Answers.Correction(Previous_trials + Trial_number - Training_trials - Screening_trials, 1) = ...
@@ -192,7 +195,7 @@ for Trial_number = (1 + Training_trials + Screening_trials):(Training_trials + S
     
     subplot(2,1,2);
     
-        Bayesian_guess(5) = bar(BINS,hc{1,1}, 'FaceColor', 'r');
+        Bayesian_guess(5) = bar(BINS, hc{1,1}, 'FaceColor', 'r');
         hold on
         
         Bayesian_guess(6) = bar(BINS, hc{2,1}, 'FaceColor', 'g');
@@ -210,7 +213,7 @@ for Trial_number = (1 + Training_trials + Screening_trials):(Training_trials + S
         s = ones(100);
         for i = 1:100
             s(i) = DATA.Fit.Psychometric.Function([],[ ...
-            fit.posterior(end).muPhi(1)+randn*(fit.posterior(end).SigmaPhi(1));...
+            fit.posterior(end).muPhi(1)+randn*(fit.posterior(end).SigmaPhi(1)); ...
             fit.posterior(end).muPhi(2)+randn*(fit.posterior(end).SigmaPhi(4))], t);
         end
         %Bayesian_guess(7) = [Bayesian_guess ploterr(t, mean(s), std(s),'Color',[1 1 1]*.9)];
