@@ -60,7 +60,7 @@ subplot(2,1,1);
 
 fprintf('\nCONSTRAINTS\n');
 
-Forced_levels = [0.01, 0.6];
+Forced_levels = [0.01, 0.6]; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Forced_performance = [DATA.Fit.Psychometric.Chance, 1];
 Forced_trials = 100;
 
@@ -107,7 +107,7 @@ fprintf('\nPHASE 2: SCREENING\n');
 
 Previous_trials = size(DATA.Paradigm.Phasis1.Coherences, 2);
 Screening_window = [0.01, 0.6];
-Screning_interval = 0;%20;
+Screning_interval = 20;
 Screening_levels = Shuffle((round(linspace(Screening_window(1), Screening_window(2), Screning_interval)*100))/100);
 Screening_trials = size(Screening_levels, 2);
 
@@ -137,7 +137,7 @@ fprintf('\nPHASE 3: OPTIMIZING\n');
 % Optimizing_minimum_efficiency = -0.05;
 
 Previous_trials = size(DATA.Paradigm.Phasis1.Coherences, 2);
-Optimizing_trials = 70;
+Optimizing_trials = 90;
 DATA.Fit.Psychometric.Efficiency = -Inf*ones(Optimizing_trials, 1);
 
 for Trial_number = (1 + Training_trials + Screening_trials):(Training_trials + Screening_trials + Optimizing_trials)
