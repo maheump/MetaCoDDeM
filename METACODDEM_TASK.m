@@ -158,7 +158,7 @@ DATA.Fit.Psychometric.Chance = 1/length(display.table);
 dots.nDots = round(1.5*(2*pi*((display.scale/2)^2))); % Compute the number of dots based on the aperture size
 dots.speed = 5;
 dots.lifetime = 12;
-dots.apertureSize = [display.scale display.scale];
+dots.apertureSize = [display.scale, display.scale];
 dots.center = [0, 0];
 dots.color = colors.white;
 dots.size = 5;
@@ -188,18 +188,65 @@ if (DATA.Subject.Optimization == 0)
     % Repeat each coherence level a certain number of time (the number of trials per coherence level basically)
     DATA.Paradigm.Phasis1.Coherences = repmat(DATA.Paradigm.Phasis1.Coherences_level, DATA.Paradigm.Phasis1.Coherences_number, 1);
     % Randomly shuffle it
-    DATA.Paradigm.Phasis1.Coherences = DATA.Paradigm.Phasis1.Coherences(randperm(length(DATA.Paradigm.Phasis1.Coherences)), 1);
+    DATA.Paradigm.Phasis1.Coherences = Shuffle(DATA.Paradigm.Phasis1.Coherences);
     % Get the total number of trials in the first phasis
     DATA.Paradigm.Phasis1.Trials = size(DATA.Paradigm.Phasis1.Coherences, 1);
 elseif (DATA.Subject.Optimization == 1)
     % Define the psychometric function
-    sigmoid_binomial(DATA.Fit.Psychometric.Chance);
-    DATA.Fit.Psychometric.SigFunc = @sigmoid_binomial;
-    DATA.Fit.Psychometric.SigFunc = @g_sigm_binomial;
-    %DATA.Fit.Psychometric.SigFunc = @g_sigm_binomial;
-    DATA.Fit.Psychometric.Estimated = [0;0];
-    DATA.Fit.Psychometric.EstimatedVariance = DATA.Paradigm.Phasis1.Trials*eye(2);
-    DATA.Fit.Psychometric.GridU = 0.01:0.01:1 ;
+    sigmoid_binomial_nogradients(DATA.Fit.Psychometric.Chance);
+    DATA.Fit.Psychometric.Function = @sigmoid_binomial_nogradients;
+    % Define some parameters usefull for the design optimization
+    DATA.Fit.Psychometric.Estimated = [log(10); 0.25];
+    DATA.Fit.Psychometric.Estimated_variance = diag([log(10), 10]);
+    DATA.Fit.Psychometric.Grid = 0.01:0.01:1;
+    % Prepare the outcome variables
+    DATA.Fit.Psychometric.MuPhi = [];
+    DATA.Fit.Psychometric.SigmaPhi = [];
+    % Define some constraints
+    DATA.Fit.Psychometric.Forced_levels = [0.01, 0.6];
+    DATA.Fit.Psychometric.Forced_performance = [DATA.Fit.Psychometric.Chance, 1];
+    DATA.Fit.Psychometric.Forced_trials = 100;
+    DATA.Fit.Psychometric.Forced_coherences = [];
+    DATA.Fit.Psychometric.Forced_correction = [];
+	for Forced_level = 1:size(DATA.Fit.Psychometric.Forced_levels, 2)
+        Good_answer = round(DATA.Fit.Psychometric.Forced_trials*DATA.Fit.Psychometric.Forced_performance(Forced_level));
+        Bad_answer = DATA.Fit.Psychometric.Forced_trials - Good_answer;
+        for Forced_trial = 1:DATA.Fit.Psychometric.Forced_trials
+            DATA.Fit.Psychometric.Forced_coherences(end + 1) = DATA.Fit.Psychometric.Forced_levels(Forced_level);
+        end
+        for Forced_trial = 1:round(DATA.Fit.Psychometric.Forced_trials*DATA.Fit.Psychometric.Forced_performance(Forced_level))
+            DATA.Fit.Psychometric.Forced_correction(end + 1, :) = 1;
+        end
+        for Forced_trial = 1:round(DATA.Fit.Psychometric.Forced_trials*(1 - DATA.Fit.Psychometric.Forced_performance(Forced_level)))
+            DATA.Fit.Psychometric.Forced_correction(end + 1, :) = 0;
+        end
+	end
+    DATA.Fit.Psychometric.Forced_table = double(grpstats(set(mat2dataset([transpose(DATA.Fit.Psychometric.Forced_coherences),(DATA.Fit.Psychometric.Forced_correction)]), 'VarNames', {'Coherence','Correction'}), 'Coherence'));
+    % Define the number of trials to display    
+    if (DATA.Subject.Context ~= 3)
+        DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization = 20;
+        DATA.Paradigm.Fit.Psychometric.Optimizing_trials_per_optimization = 90;
+    % If we are in the test context, do it quickly !
+    elseif (DATA.Subject.Context == 3)
+        DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization = 2;
+        DATA.Paradigm.Fit.Psychometric.Optimizing_trials_per_optimization = 5;
+    end
+    % Define the screening parameters
+    DATA.Paradigm.Fit.Screening_window = [0.01, 0.6];
+    DATA.Paradigm.Fit.Screning_interval = 20;
+    DATA.Paradigm.Fit.Screening_levels = Shuffle((round(linspace(DATA.Paradigm.Fit.Screening_window(1), DATA.Paradigm.Fit.Screening_window(2), DATA.Paradigm.Fit.Screning_interval)*100))/100);
+    % Define the number of optimization procedure to do and the trial number at which launch one of this procedure
+    DATA.Paradigm.Fit.Psychometric.Optimization_number = 3;
+    if (DATA.Paradigm.Fit.Psychometric.Optimization_number == 1)
+        DATA.Fit.Psychometric.Reinitilization_list = [];
+    elseif (DATA.Paradigm.Fit.Psychometric.Optimization_number ~= 1)
+        for i = 1:DATA.Paradigm.Fit.Psychometric.Optimization_number
+            DATA.Fit.Psychometric.Reinitilization_list(i) = (i*DATA.Paradigm.Fit.Psychometric.Optimizing_trials_per_optimization) + (i*DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization) + 1;
+        end
+    end
+    DATA.Paradigm.Fit.Psychometric.Screening_trials = DATA.Paradigm.Fit.Psychometric.Optimization_number*DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization;
+    DATA.Paradigm.Fit.Psychometric.Optimizing_trials = DATA.Paradigm.Fit.Psychometric.Optimization_number*DATA.Paradigm.Fit.Psychometric.Optimizing_trials_per_optimization;
+    DATA.Paradigm.Phasis1.Trials = (DATA.Paradigm.Fit.Psychometric.Screening_trials + DATA.Paradigm.Fit.Psychometric.Optimizing_trials)*DATA.Paradigm.Fit.Psychometric.Optimization_number;
 end
 
 % For phasis 2 (evidence accumulation phasis),
@@ -215,7 +262,7 @@ if (DATA.Subject.Context == 3)
     DATA.Paradigm.Phasis2.Accuracies_number = 1;
 end
 % Define the initial wanted performance (before increasing facility index) for one set of increasing difficulty indes
-DATA.Paradigm.Phasis2.Accuracies_levels = DATA.Fit.Psychometric.Chance:(((1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels))-0.01)-(DATA.Fit.Psychometric.Chance))/15):(1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels))-0.01);
+DATA.Paradigm.Phasis2.Accuracies_levels = DATA.Fit.Psychometric.Chance:(((1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels))-0.01)-(DATA.Fit.Psychometric.Chance))/15):(1-((DATA.Paradigm.Phasis2.Viewing_number - 1)*max(DATA.Paradigm.Phasis2.Facility_levels)) - 0.01);
 DATA.Paradigm.Phasis2.Accuracies_levels = (round(DATA.Paradigm.Phasis2.Accuracies_levels*100))/100;
 DATA.Paradigm.Phasis2.Accuracies_levels = [DATA.Paradigm.Phasis2.Accuracies_levels(1), DATA.Paradigm.Phasis2.Accuracies_levels(round(median(1:length(DATA.Paradigm.Phasis2.Accuracies_levels)))), DATA.Paradigm.Phasis2.Accuracies_levels(length(DATA.Paradigm.Phasis2.Accuracies_levels))];
 % Define the initial wanted performance (before increasing facility index) for the total number of trials
@@ -232,12 +279,12 @@ DATA.Paradigm.Phasis2.Facilities = transpose(DATA.Paradigm.Phasis2.Facilities);
 DATA.Paradigm.Phasis2.Facilities = DATA.Paradigm.Phasis2.Facilities(randperm(length(DATA.Paradigm.Phasis2.Facilities)), 1);
 % Make a table of (i) basal performance level, (ii) increasing facility index, and (iii) final performance
 for i = 1:1:size(DATA.Paradigm.Phasis2.Accuracies)
-    DATA.Paradigm.Phasis2.Performances(i,1) = DATA.Paradigm.Phasis2.Accuracies(i);
-    DATA.Paradigm.Phasis2.Performances(i,2) = DATA.Paradigm.Phasis2.Facilities(i);
+    DATA.Paradigm.Phasis2.Performances(i, 1) = DATA.Paradigm.Phasis2.Accuracies(i);
+    DATA.Paradigm.Phasis2.Performances(i, 2) = DATA.Paradigm.Phasis2.Facilities(i);
     if (DATA.Paradigm.Phasis2.Facilities(i) ~= -1)
-        DATA.Paradigm.Phasis2.Performances(i,3) = DATA.Paradigm.Phasis2.Accuracies(i) + DATA.Paradigm.Phasis2.Facilities(i);
+        DATA.Paradigm.Phasis2.Performances(i, 3) = DATA.Paradigm.Phasis2.Accuracies(i) + DATA.Paradigm.Phasis2.Facilities(i);
     elseif (DATA.Paradigm.Phasis2.Facilities(i) == -1)
-        DATA.Paradigm.Phasis2.Performances(i,3) = DATA.Paradigm.Phasis2.Accuracies(i);
+        DATA.Paradigm.Phasis2.Performances(i, 3) = DATA.Paradigm.Phasis2.Accuracies(i);
     end
 end
 % Get the total number of trials in the second phasis
@@ -273,7 +320,7 @@ end
 
 % Define gains modalities (left column for wrong answers and right column for correct answers)
 DATA.Points.Initial = 5000; % Define the initial gain
-DATA.Points.Matrix.Phasis1 = [-80, 80]; % Define the gain matrix for phasis 1
+DATA.Points.Matrix.Phasis1 = [-25, 25]; % Define the gain matrix for phasis 1
 DATA.Points.Matrix.Phasis2 = [-80, 80]; % Define the gain matrix for phasis 2
 DATA.Points.Matrix.Phasis3 = [-190, 130; -110, 110; -90, 90; -70, 70; -50, 50]; % Define the gain matrix for phasis 3
 DATA.Points.Matrix.Confidence = [-110, 50]; % Define the gain matrix for condidence steps
@@ -296,6 +343,7 @@ try
       
     % Set the first phasis
     Phasis_number = 1;
+    Optimization_number = 1;
     Trial_number = 1;
     Training_trial = 1;
     
@@ -314,7 +362,7 @@ try
         end
 
         % Display the information that it is a new stimulus
-        if (Phasis_number ~= 1) 
+        if (Phasis_number ~= 1)
             drawText_MxM(display, [0, (display.scale/5)], 'Nouveau stimulus', colors.white, display.scale*4);
             drawText_MxM(display, [0, -(display.scale/5)], '(Appuyez sur n''importe quelle touche pour commencer)', colors.white, display.scale*2);
             Screen('Flip',display.windowPtr);
@@ -330,19 +378,11 @@ try
             % If the bayesian optimization is activate
             if (DATA.Subject.Optimization == 1)
                     if (Trial_number == 1)
-                        % Initialize the Bayesian Optimizer
-                        OptimDesign('initialize', DATA.Fit.Psychometric.SigFunc, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.EstimatedVariance, DATA.Fit.Psychometric.GridU);
-                        DATA.Fit.Psychometric.Efficiency = zeros(DATA.Paradigm.Trials, 1);
+                        % Initialize the design optimization
+                        DATA.Fit.Psychometric.Init = OptimDesign('initialize', DATA.Fit.Psychometric.Function, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.Estimated_variance, DATA.Fit.Psychometric.Grid);
+                        DATA.Fit.Psychometric.Efficiency = zeros(DATA.Paradigm.Trials, 1); %%%%%%%%%%%%%%%%%%%%%%%%%
+                        % Insert
                     end
-                    % If we reach the threshold, end the first phasis
-%                     if (z < 0.05) && (x < 0.05)
-%                         DATA.Paradigm.Phasis1.Trials = Trial_number;
-%                         % Mettre à jour les variables de la Phase 1 en supprimant les lignes
-%                         % DATA.Paradigm.Phasis1.Coherences(DATA.Paradigm.Phasis1.Trials:length(DATA.Paradigm.Phasis1.Coherences)) = [];
-%                         % define the most informative dots motion coherence
-%                     end
-                % Find the most informative coherence level
-                [DATA.Paradigm.Phasis1.Coherences(Trial_number), DATA.Fit.Psychometric.Efficiency(Trial_number)] = OptimDesign('nexttrial');
             end
             dots.coherence = DATA.Paradigm.Phasis1.Coherences(Trial_number);
 
@@ -564,6 +604,15 @@ try
                     if (DATA.Subject.Design == 1)
                         % Choose right answer
                         display.index = 2;
+                        % If we are in phasis 1, hurry up !
+                        if (Phasis_number == 1)
+                            % Get the perceptual reaction time
+                            DATA.Answers.RT1brut(Trial_number, 1) = (timeSecs - startTime)*1000;
+                            % Save the subject answer
+                            DATA.Answers.Direction(Trial_number, 1) = display.table(1, display.index);
+                            waitTill(0.2);
+                            break;
+                        end
                     % For "clock" design
                     elseif (DATA.Subject.Design == 2)
                         % Increase angle with 1 step
@@ -580,6 +629,15 @@ try
                     if (DATA.Subject.Design == 1)
                         % Choose left answer
                         display.index = 1;
+                        % If we are in phasis 1, hurry up !
+                        if (Phasis_number == 1)
+                            % Get the perceptual reaction time
+                            DATA.Answers.RT1brut(Trial_number, 1) = (timeSecs - startTime)*1000;
+                            % Save the subject answer
+                            DATA.Answers.Direction(Trial_number, 1) = display.table(1, display.index);
+                            waitTill(0.2);
+                            break;
+                        end
                     % For "clock" design,
                     elseif (DATA.Subject.Design == 2)
                         % Decrease angle with minus 1 step

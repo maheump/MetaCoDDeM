@@ -60,7 +60,7 @@ subplot(2,1,1);
 
 fprintf('\nCONSTRAINTS\n');
 
-Forced_levels = [0.01, 0.6]; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Forced_levels = [0.01, 0.6];
 Forced_performance = [DATA.Fit.Psychometric.Chance, 1];
 Forced_trials = 100;
 
