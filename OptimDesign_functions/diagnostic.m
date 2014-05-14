@@ -1,4 +1,4 @@
-Loops = 300;
+Loops = 8;
 Fit_quality = zeros(Loops, 2);
 for Loop = 1:Loops
     fprintf('Loop n°%g.\n', Loop);

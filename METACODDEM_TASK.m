@@ -26,7 +26,7 @@ clc;
 clear all;
 
 % Define in which context the task will be displayed (1: Individual testing, 2: LEEP testing, 3: Script test)
-DATA.Subject.Context = 2;
+DATA.Subject.Context = 3;
 
 % Add functions folders to Matlab path
 addpath('Draw_functions');
@@ -214,10 +214,10 @@ elseif (DATA.Subject.Optimization == 1)
         for Forced_trial = 1:DATA.Fit.Psychometric.Forced_trials
             DATA.Fit.Psychometric.Forced_coherences(end + 1) = DATA.Fit.Psychometric.Forced_levels(Forced_level);
         end
-        for Forced_trial = 1:round(DATA.Fit.Psychometric.Forced_trials*DATA.Fit.Psychometric.Forced_performance(Forced_level))
+        for Forced_trial = 1:Good_answer
             DATA.Fit.Psychometric.Forced_correction(end + 1, :) = 1;
         end
-        for Forced_trial = 1:round(DATA.Fit.Psychometric.Forced_trials*(1 - DATA.Fit.Psychometric.Forced_performance(Forced_level)))
+        for Forced_trial = 1:Bad_answer
             DATA.Fit.Psychometric.Forced_correction(end + 1, :) = 0;
         end
 	end
@@ -233,20 +233,20 @@ elseif (DATA.Subject.Optimization == 1)
     end
     % Define the screening parameters
     DATA.Paradigm.Fit.Screening_window = [0.01, 0.6];
-    DATA.Paradigm.Fit.Screning_interval = 20;
+    DATA.Paradigm.Fit.Screning_interval = DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization;
     DATA.Paradigm.Fit.Screening_levels = Shuffle((round(linspace(DATA.Paradigm.Fit.Screening_window(1), DATA.Paradigm.Fit.Screening_window(2), DATA.Paradigm.Fit.Screning_interval)*100))/100);
     % Define the number of optimization procedure to do and the trial number at which launch one of this procedure
     DATA.Paradigm.Fit.Psychometric.Optimization_number = 3;
     if (DATA.Paradigm.Fit.Psychometric.Optimization_number == 1)
-        DATA.Fit.Psychometric.Reinitilization_list = [];
+        DATA.Fit.Psychometric.Reinitialization_list = [];
     elseif (DATA.Paradigm.Fit.Psychometric.Optimization_number ~= 1)
-        for i = 1:DATA.Paradigm.Fit.Psychometric.Optimization_number
-            DATA.Fit.Psychometric.Reinitilization_list(i) = (i*DATA.Paradigm.Fit.Psychometric.Optimizing_trials_per_optimization) + (i*DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization) + 1;
+        for i = 1:(DATA.Paradigm.Fit.Psychometric.Optimization_number - 1)
+            DATA.Fit.Psychometric.Reinitialization_list(i) = (i*DATA.Paradigm.Fit.Psychometric.Optimizing_trials_per_optimization) + (i*DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization) + 1;
         end
     end
     DATA.Paradigm.Fit.Psychometric.Screening_trials = DATA.Paradigm.Fit.Psychometric.Optimization_number*DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization;
     DATA.Paradigm.Fit.Psychometric.Optimizing_trials = DATA.Paradigm.Fit.Psychometric.Optimization_number*DATA.Paradigm.Fit.Psychometric.Optimizing_trials_per_optimization;
-    DATA.Paradigm.Phasis1.Trials = (DATA.Paradigm.Fit.Psychometric.Screening_trials + DATA.Paradigm.Fit.Psychometric.Optimizing_trials)*DATA.Paradigm.Fit.Psychometric.Optimization_number;
+    DATA.Paradigm.Phasis1.Trials = DATA.Paradigm.Fit.Psychometric.Screening_trials + DATA.Paradigm.Fit.Psychometric.Optimizing_trials;
 end
 
 % For phasis 2 (evidence accumulation phasis),
@@ -311,7 +311,11 @@ DATA.Paradigm.Phasis3.Trials = size(DATA.Paradigm.Phasis3.Performances, 1);
 
 % Get the total number of trials
 DATA.Paradigm.Trials = DATA.Paradigm.Phasis1.Trials + DATA.Paradigm.Phasis2.Trials + DATA.Paradigm.Phasis3.Trials;
-DATA.Paradigm.Trainings = 10;
+if (DATA.Subject.Context ~= 3)
+    DATA.Paradigm.Trainings = 10;
+elseif (DATA.Subject.Context == 3)
+    DATA.Paradigm.Trainings = 2;
+end
 
 % Choose a random stimulus direction for each trial among the possible ones
 for i = 1:1:DATA.Paradigm.Trials
@@ -344,6 +348,7 @@ try
     % Set the first phasis
     Phasis_number = 1;
     Optimization_number = 1;
+    Screening_number = 1;
     Trial_number = 1;
     Training_trial = 1;
     
@@ -377,16 +382,40 @@ try
         if (Phasis_number == 1)
             % If the bayesian optimization is activate
             if (DATA.Subject.Optimization == 1)
+                    % If it is the first trial
                     if (Trial_number == 1)
                         % Initialize the design optimization
                         DATA.Fit.Psychometric.Init = OptimDesign('initialize', DATA.Fit.Psychometric.Function, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.Estimated_variance, DATA.Fit.Psychometric.Grid);
-                        DATA.Fit.Psychometric.Efficiency = zeros(DATA.Paradigm.Trials, 1); %%%%%%%%%%%%%%%%%%%%%%%%%
-                        % Insert
+                        % And set some variables
+                        DATA.Fit.Psychometric.Efficiency = zeros(DATA.Paradigm.Phasis1.Trials, 1);
+                        DATA.Fit.Psychometric.Input_coherences = DATA.Fit.Psychometric.Forced_coherences;
+                        DATA.Fit.Psychometric.Input_correction = DATA.Fit.Psychometric.Forced_correction;
+                    elseif (any(DATA.Fit.Psychometric.Reinitialization_list == Trial_number) == 1)
+                        % Save the results from the previous optimization protocol
+                        [DATA.Fit.Psychometric.MuPhi(end + 1), DATA.Fit.Psychometric.SigmaPhi(end + 1)] = OptimDesign('results');
+                        % Reset some variables
+                        Optimization_number = Optimization_number + 1;
+                        Screening_number = 1;
+                        DATA.Fit.Psychometric.Input_coherences = DATA.Fit.Psychometric.Forced_coherences;
+                        DATA.Fit.Psychometric.Input_correction = DATA.Fit.Psychometric.Forced_correction;
+                        % Initialize the next optimization protocol
+                        DATA.Fit.Psychometric.Init = OptimDesign('initialize', DATA.Fit.Psychometric.Function, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.Estimated_variance, DATA.Fit.Psychometric.Grid);
+                    end
+                    
+                    % In the first part, get the coherence level from the screening table
+                    if (Screening_number <= DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization)
+                        DATA.Paradigm.Phasis1.Coherences(Trial_number, 1) = DATA.Paradigm.Fit.Screening_levels(Screening_number);
+                        DATA.Fit.Psychometric.Input_coherences(end + 1) = DATA.Paradigm.Fit.Screening_levels(Screening_number);
+                    % Then, find the most informative coherence level
+                    elseif (Screening_number > DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization)
+                        % Get the coherence level from the optimization protocol
+                        [DATA.Paradigm.Phasis1.Coherences(Trial_number), DATA.Fit.Psychometric.Efficiency(Trial_number)] = OptimDesign('nexttrial');
+                        DATA.Fit.Psychometric.Input_coherences(end + 1) = DATA.Paradigm.Phasis1.Coherences(Trial_number);
                     end
             end
             dots.coherence = DATA.Paradigm.Phasis1.Coherences(Trial_number);
 
-        % For phasis 2,
+        % For phasis 2
         elseif (Phasis_number == 2)
             % Get a coherence level according to a given performance
             DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = ...
@@ -717,10 +746,12 @@ try
         % During the first phasis, if optimization option is enabled
         if (Phasis_number == 1) && (DATA.Subject.Optimization == 1)
             % Register the response made by the subject
-            OptimDesign('register', DATA.Answers.Correction(Trial_number, 1));
-            % Save the evolution of the sigmoid parameters during phasis 1
-            [DATA.Fit.Psychometric.Parameters(:, Trial_number)] = OptimDesign('results');
-            %DATA.Paradigm.Phasis1.Coherences(Trial_number) = coh;
+            DATA.Fit.Psychometric.Input_correction(end + 1) = DATA.Answers.Correction(Trial_number, 1);
+            OptimDesign('register', DATA.Fit.Psychometric.Input_correction(end), DATA.Fit.Psychometric.Input_coherences(end), size(DATA.Fit.Psychometric.Input_coherences, 2));
+            if (Screening_number > DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization)
+                % Save the evolution of the sigmoid parameters
+                [DATA.Fit.Psychometric.Parameters(Trial_number, :)] = OptimDesign('results');
+            end
         end
 
         % Get the amount of "perceptual" gain
@@ -849,15 +880,16 @@ try
             % Make a coherence x performance table
             DATA.Fit.Psychometric.Coherence = unique(DATA.Paradigm.Phasis1.Coherences);
             DATA.Fit.Psychometric.Performance = grpstats(DATA.Answers.Correction, DATA.Paradigm.Phasis1.Coherences(1:DATA.Paradigm.Phasis1.Trials));
-            DATA.Fit.Psychometric.Coherence = [0, DATA.Fit.Psychometric.Coherence];
-            DATA.Fit.Psychometric.Performance = [DATA.Fit.Psychometric.Chance; DATA.Fit.Psychometric.Performance];
-            %DATA.Fit.Psychometric.Coherence = [DATA.Fit.Psychometric.Coherence, 1];
-            %DATA.Fit.Psychometric.Performance = [DATA.Fit.Psychometric.Performance, 1];
+            if (DATA.Subject.Optimization == 0)
+                DATA.Fit.Psychometric.Coherence = [0; DATA.Fit.Psychometric.Coherence];
+                DATA.Fit.Psychometric.Performance = [DATA.Fit.Psychometric.Chance; DATA.Fit.Psychometric.Performance];
+            end
+            
+            % Define the psychometric function
+            DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));
 
             % If the bayesian optimization is not activate
             if (DATA.Subject.Optimization == 0)
-                % Define the psychometric function
-                DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));
                 if (DATA.Subject.Context ~= 3)
                     % Fit the psychometric function
                     DATA.Fit.Psychometric.SigFit = nlinfit(DATA.Fit.Psychometric.Coherence, DATA.Fit.Psychometric.Performance, DATA.Fit.Psychometric.SigFunc, [1, 1]);
@@ -865,16 +897,15 @@ try
                     % Define some default psychometric parameters
                     DATA.Fit.Psychometric.SigFit(1) = 10;
                     DATA.Fit.Psychometric.SigFit(2) = 0.5;
+                    DATA.Fit.Psychometric.SigFit = nlinfit(DATA.Fit.Psychometric.Coherence, DATA.Fit.Psychometric.Performance, DATA.Fit.Psychometric.SigFunc, [1, 1]);%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 end
                 
             % If the bayesian optimization is activate
             elseif (DATA.Subject.Optimization == 1)
                 % Get the psychometric parameters
-                [DATA.Fit.Psychometric.muPhi, DATA.Fit.Psychometric.SigmaPhi] = OptimDesign('results');                
-                DATA.Fit.Psychometric.SigFit(1) = exp(DATA.Fit.Psychometric.muPhi(1));
-                DATA.Fit.Psychometric.SigFit(2) = DATA.Fit.Psychometric.muPhi(2);
-                % Define the psychometric function
-                DATA.Fit.Psychometric.SigFunc = @(F, x)(1./(1 + exp(-F(1)*(x-F(2)))));
+                [DATA.Fit.Psychometric.MuPhi(end + 1), DATA.Fit.Psychometric.SigmaPhi(end + 1)] = OptimDesign('results');
+                DATA.Fit.Psychometric.SigFit(1) = exp(median(DATA.Fit.Psychometric.MuPhi(:, 1)));
+                DATA.Fit.Psychometric.SigFit(2) = median(DATA.Fit.Psychometric.MuPhi(:, 2));
             end
 
             % Define the plot
@@ -893,10 +924,10 @@ try
             % Draw chance level
             plot(DATA.Fit.Psychometric.Theoretical_x, DATA.Fit.Psychometric.Chance, 'c');
             % Write down the sigmoid parameters on the graph
-            text(0.8, 0.2, strcat('Mu = ', num2str((round(DATA.Fit.Psychometric.SigFit(1)*100)/100))));
-            text(0.8, 0.1, strcat('Sigma = ', num2str((round(DATA.Fit.Psychometric.SigFit(2)*100)/100))));
+            text(0.8, 0.2, strcat('Beta = ', num2str((round(DATA.Fit.Psychometric.SigFit(1)*100)/100))));
+            text(0.8, 0.1, strcat('Theta = ', num2str((round(DATA.Fit.Psychometric.SigFit(2)*100)/100))));
             % Set legend, axis and labels
-            legend('Human data', 'Fit', 'Model data', 'Chance', 'location', 'northwest');
+            legend('Human data', 'Fit', 'Model data', 'Chance', 'location', 'northeast');
             axis([0, 1, 0, 1]);
             xlabel('Motion coherence'); 
             ylabel('Perceptual performance');
@@ -961,6 +992,9 @@ try
         if (Training_trial > DATA.Paradigm.Trainings + 1)
             Trial_number = Trial_number + 1;
         end
+        
+        % allow to go through all the screening window
+        Screening_number = Screening_number + 1;
         
     % save(DATA.Files.Name, 'DATA'); % à SUPPRIMER
     
@@ -1158,23 +1192,23 @@ end
 % Go to the subject directory
 cd(DATA.Files.Name);
 
-% Save data for further import in Dift Diffusion Model or Linear Ballistic Accumulator model
-save(strcat(DATA.Files.Name, '_DDM-LBA-1'), 'DMAT1');
-save(strcat(DATA.Files.Name, '_DDM-LBA-2'), 'DMAT2');
-save(strcat(DATA.Files.Name, '_DDM-LBA-3'), 'DMAT3');
-
 % Save data
 DATA.Paradigm.Stimulus = dots;
 DATA.Paradigm.SetUp = display;
 save(DATA.Files.Name, 'DATA');
+
+% Save data for further import in Dift Diffusion Model or Linear Ballistic Accumulator model
+save(strcat(DATA.Files.Name, '_DDM-LBA-1'), 'DMAT1');
+save(strcat(DATA.Files.Name, '_DDM-LBA-2'), 'DMAT2');
+save(strcat(DATA.Files.Name, '_DDM-LBA-3'), 'DMAT3');
 
 % Save R table
 cd ..
 cell2csv(strcat(DATA.Files.Name, '/', DATA.Files.Name, '.csv'), Rtable);
 cd(DATA.Files.Name);
 
-% % Save fit graph
-% saveas(fig, DATA.Files.Name, 'fig');
+% Save fit graph
+saveas(fig, DATA.Files.Name, 'fig');
 
 %% Close all
 
@@ -1198,7 +1232,7 @@ end
 Screen('CloseAll');
 
 % Clear all and quit
-clear all;
 if (DATA.Subject.Context == 2)
+    clear all;
     exit;
 end

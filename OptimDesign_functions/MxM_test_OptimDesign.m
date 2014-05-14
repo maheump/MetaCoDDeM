@@ -224,5 +224,5 @@ end
 [DATA.Fit.Psychometric.muPhi,DATA.Fit.Psychometric.SigmaPhi] = OptimDesign('results');
 
 %% Save the error
-Error = [abs(DATA.Fit.Psychometric.muPhi(1) - Theroretical_parameters(1)); abs(DATA.Fit.Psychometric.muPhi(2) - Theroretical_parameters(2))];
+Error = [(Theroretical_parameters(1) - DATA.Fit.Psychometric.muPhi(1)), (Theroretical_parameters(2) - DATA.Fit.Psychometric.muPhi(2))];
 fprintf('\nError: on beta = %g, on theta = %g.\n', Error);
