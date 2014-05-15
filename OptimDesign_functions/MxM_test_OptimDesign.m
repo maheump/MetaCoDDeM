@@ -1,5 +1,15 @@
 %%%% Test VBA on METACODDEM (with chance level) %%%%
 
+cd ..
+% Add functions folders to Matlab path
+addpath('Draw_functions');
+addpath('OptimDesign_functions');
+addpath('PTB_functions');
+addpath('VBA');
+addpath('VBA\subfunctions');
+addpath('VBA\stats&plots');
+addpath('VBA\classification');
+
 clearvars -except Loop Loops Fit_quality; close all; clc
 
 %% Set some parameters (chance, grid, etc.)
@@ -28,7 +38,7 @@ DATA.Fit.Psychometric.Init = OptimDesign('initialize', ...
 
 %% Define the targetted theoretical parameters
 
-Theroretical_parameters = [log(30), 0.3]; %[log(randi([20, 100])); randi([1, 30])/100];
+Theroretical_parameters = [log(30), 0.02]; %[log(randi([20, 100])); randi([1, 30])/100];
 fprintf(' Setting theoretical curve parameters: beta = %g, theta = %g.\n', Theroretical_parameters);
 
 %% Create our pseudo-subject
@@ -60,9 +70,9 @@ subplot(2,1,1);
 
 fprintf('\nCONSTRAINTS\n');
 
-Forced_levels = [0.01, 0.6];
+Forced_levels = [0, 0.6];
 Forced_performance = [DATA.Fit.Psychometric.Chance, 1];
-Forced_trials = 100;
+Forced_trials = 0;%2;%100;
 
 DATA.Paradigm.Phasis1.Coherences = [];
 DATA.Answers.Correction = [];
@@ -79,11 +89,15 @@ for Forced_level = 1:size(Forced_levels, 2)
     end
 end % vérifier dans le script de la tâche comment les cohérences et les réponses sont enregistrées (colonnes ou lignes)
 
-Forced_table = double(grpstats(set(mat2dataset([transpose(DATA.Paradigm.Phasis1.Coherences),(DATA.Answers.Correction)]), ...
-    'VarNames', {'Coherence','Correction'}), 'Coherence'));
-for Forced_level = 1:size(Forced_table, 1)
-    fprintf(' %g trials forced to evoked %g%% performance for a coherence level at %g%%.\n', Forced_table(Forced_level, 2), ...
-        Forced_table(Forced_level, 3)*100, Forced_table(Forced_level, 1)*100);
+% Forced_table = double(grpstats(set(mat2dataset([transpose(DATA.Paradigm.Phasis1.Coherences),(DATA.Answers.Correction)]), ...
+%     'VarNames', {'Coherence','Correction'}), 'Coherence'));
+% for Forced_level = 1:size(Forced_table, 1)
+%     fprintf(' %g trials forced to evoked %g%% performance for a coherence level at %g%%.\n', Forced_table(Forced_level, 2), ...
+%         Forced_table(Forced_level, 3)*100, Forced_table(Forced_level, 1)*100);
+% end
+
+for Trial_number = 1:size(DATA.Paradigm.Phasis1.Coherences, 2)
+    OptimDesign('register', DATA.Answers.Correction(Trial_number), DATA.Paradigm.Phasis1.Coherences(Trial_number), (Trial_number));
 end
 
 %% Then display some training trials
@@ -107,7 +121,7 @@ fprintf('\nPHASE 2: SCREENING\n');
 
 Previous_trials = size(DATA.Paradigm.Phasis1.Coherences, 2);
 Screening_window = [0.01, 0.6];
-Screning_interval = 20;
+Screning_interval = 0;%20;
 Screening_levels = Shuffle((round(linspace(Screening_window(1), Screening_window(2), Screning_interval)*100))/100);
 Screening_trials = size(Screening_levels, 2);
 
@@ -137,7 +151,7 @@ fprintf('\nPHASE 3: OPTIMIZING\n');
 % Optimizing_minimum_efficiency = -0.05;
 
 Previous_trials = size(DATA.Paradigm.Phasis1.Coherences, 2);
-Optimizing_trials = 90;
+Optimizing_trials = 130;
 DATA.Fit.Psychometric.Efficiency = -Inf*ones(Optimizing_trials, 1);
 
 for Trial_number = (1 + Training_trials + Screening_trials):(Training_trials + Screening_trials + Optimizing_trials)
@@ -145,9 +159,6 @@ for Trial_number = (1 + Training_trials + Screening_trials):(Training_trials + S
     % Ask the optimizater the most informative coherence Forced_level it could find (and its relative efficiency)
     [DATA.Paradigm.Phasis1.Coherences(Previous_trials + Trial_number - Training_trials - Screening_trials), ...
         DATA.Fit.Psychometric.Efficiency(Trial_number - Training_trials - Screening_trials)] = OptimDesign('nexttrial');
-    
-    % Mettre une précaution s'il demande plus de 5 fois de suite le même
-    % niveau de cohérence !
     
     % Ask the pseudo-subject his answer
     DATA.Answers.Correction(Previous_trials + Trial_number - Training_trials - Screening_trials, 1) = ...

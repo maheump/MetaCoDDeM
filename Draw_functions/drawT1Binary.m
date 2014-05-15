@@ -2,7 +2,9 @@ function display = drawT1Binary(display, phasis, gains_P1, gains_P2, gains_P3)
 
 % Display instructions
 drawText_MxM(display, [0, (display.scale/(4/3))], 'Veuillez indiquer la direction du mouvement', [255, 255, 255], (display.scale*4));
-drawText_MxM(display, [0, -(display.scale/(4/3))], '(Appuyer sur ESPACE pour valider votre choix)', [255, 255, 255], (display.scale*2));
+if (phasis ~= 1)
+    drawText_MxM(display, [0, -(display.scale/(4/3))], '(Appuyer sur ESPACE pour valider votre choix)', [255, 255, 255], (display.scale*2));
+end
 
 % Display gain matrix
 if (phasis == 1)

@@ -2,7 +2,7 @@ function gx = sigplus(x,P,u,in)
 % Jean Daunizeau's function
 
 %s = sig(P(1));
-s = .4;
+s = 0.5;
 b = exp(P(1));
 t = P(2);
 

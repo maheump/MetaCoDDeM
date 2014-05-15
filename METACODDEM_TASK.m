@@ -15,7 +15,7 @@
 %%% * Brain and Spine Institute
 
 %%% This program was written to study the computational and behavioral determinants of
-%%% metacognitive control during perceptual decision making (with multi-sampling)
+%%% metacognitive control during perceptual decision making (with multi-sampling).
 
 %%% ------------------------------------------------------------------------------------- %%% 
 
@@ -26,7 +26,7 @@ clc;
 clear all;
 
 % Define in which context the task will be displayed (1: Individual testing, 2: LEEP testing, 3: Script test)
-DATA.Subject.Context = 3;
+DATA.Subject.Context = 2;
 
 % Add functions folders to Matlab path
 addpath('Draw_functions');
@@ -96,7 +96,7 @@ elseif (DATA.Subject.Context == 3)
     DATA.Subject.Gender = 'NaN';
     % Display the 2AFC design without bayesian optimisation
     DATA.Subject.Design = 1;
-    DATA.Subject.Optimization = 0;
+    DATA.Subject.Optimization = 1;
     DATA.Subject.Phasis = 123;
     DATA.Subject.Phasis_list = char(num2str(sort(DATA.Subject.Phasis))) - 48;
     DATA.Files.Name = 'Data';
@@ -149,7 +149,7 @@ elseif (DATA.Subject.Design == 2)
     display.table_a = 0:DATA.Paradigm.Step:359;
     display.table_b = 90:-DATA.Paradigm.Step:0;
     display.table_c = 360:-DATA.Paradigm.Step:91;
-    display.table_c(:,1) = [];
+    display.table_c(:, 1) = [];
     display.table = [display.table_a; display.table_b, display.table_c];
 end
 DATA.Fit.Psychometric.Chance = 1/length(display.table);
@@ -157,12 +157,12 @@ DATA.Fit.Psychometric.Chance = 1/length(display.table);
 % Define dot parameters
 dots.nDots = round(1.5*(2*pi*((display.scale/2)^2))); % Compute the number of dots based on the aperture size
 dots.speed = 5;
-dots.lifetime = 12;
+dots.lifetime = 40; % miliseconds
 dots.apertureSize = [display.scale, display.scale];
 dots.center = [0, 0];
 dots.color = colors.white;
 dots.size = 5;
-dots.duration = 0.750; % miliseconds
+dots.duration = 0.500; % miliseconds
 
 %% Define phasis parameters
 
@@ -195,17 +195,17 @@ elseif (DATA.Subject.Optimization == 1)
     % Define the psychometric function
     sigmoid_binomial_nogradients(DATA.Fit.Psychometric.Chance);
     DATA.Fit.Psychometric.Function = @sigmoid_binomial_nogradients;
-    % Define some parameters usefull for the design optimization
+    % Define some parameters (the priors and the grid essentialy) usefull for the design optimization
     DATA.Fit.Psychometric.Estimated = [log(10); 0.25];
     DATA.Fit.Psychometric.Estimated_variance = diag([log(10), 10]);
     DATA.Fit.Psychometric.Grid = 0.01:0.01:1;
-    % Prepare the outcome variables
+    % Prepare the outcome variable
+    DATA.Fit.Psychometric.Parameters = [];
     DATA.Fit.Psychometric.MuPhi = [];
-    DATA.Fit.Psychometric.SigmaPhi = [];
     % Define some constraints
-    DATA.Fit.Psychometric.Forced_levels = [0.01, 0.6];
+    DATA.Fit.Psychometric.Forced_levels = [0, 1];
     DATA.Fit.Psychometric.Forced_performance = [DATA.Fit.Psychometric.Chance, 1];
-    DATA.Fit.Psychometric.Forced_trials = 100;
+    DATA.Fit.Psychometric.Forced_trials = 0; %2; %100; % minimum 2 if we want record DATA.Fit.Psychometric.Forced_table
     DATA.Fit.Psychometric.Forced_coherences = [];
     DATA.Fit.Psychometric.Forced_correction = [];
 	for Forced_level = 1:size(DATA.Fit.Psychometric.Forced_levels, 2)
@@ -220,15 +220,17 @@ elseif (DATA.Subject.Optimization == 1)
         for Forced_trial = 1:Bad_answer
             DATA.Fit.Psychometric.Forced_correction(end + 1, :) = 0;
         end
-	end
-    DATA.Fit.Psychometric.Forced_table = double(grpstats(set(mat2dataset([transpose(DATA.Fit.Psychometric.Forced_coherences),(DATA.Fit.Psychometric.Forced_correction)]), 'VarNames', {'Coherence','Correction'}), 'Coherence'));
+    end
+    if (DATA.Fit.Psychometric.Forced_trials >= 2)
+        DATA.Fit.Psychometric.Forced_table = double(grpstats(set(mat2dataset([transpose(DATA.Fit.Psychometric.Forced_coherences),(DATA.Fit.Psychometric.Forced_correction)]), 'VarNames', {'Coherence','Correction'}), 'Coherence'));
+    end
     % Define the number of trials to display    
     if (DATA.Subject.Context ~= 3)
-        DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization = 20;
-        DATA.Paradigm.Fit.Psychometric.Optimizing_trials_per_optimization = 90;
+        DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization = 0; %20;
+        DATA.Paradigm.Fit.Psychometric.Optimizing_trials_per_optimization = 130;
     % If we are in the test context, do it quickly !
     elseif (DATA.Subject.Context == 3)
-        DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization = 2;
+        DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization = 0;
         DATA.Paradigm.Fit.Psychometric.Optimizing_trials_per_optimization = 5;
     end
     % Define the screening parameters
@@ -256,22 +258,23 @@ DATA.Paradigm.Phasis2.Viewing_number = 2;
 % Define the increasing facility indexes
 DATA.Paradigm.Phasis2.Facility_levels = [-1, 0, 0.05, 0.10, 0.15];
 % Define the number of trials per accuracy level
-DATA.Paradigm.Phasis2.Accuracies_number = 10;
+DATA.Paradigm.Phasis2.Accuracies_number = 12;
 % If we are in the test context, display only one trial per accuracy level
 if (DATA.Subject.Context == 3)
     DATA.Paradigm.Phasis2.Accuracies_number = 1;
 end
 % Define the initial wanted performance (before increasing facility index) for one set of increasing difficulty indes
-DATA.Paradigm.Phasis2.Accuracies_levels = DATA.Fit.Psychometric.Chance:(((1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels))-0.01)-(DATA.Fit.Psychometric.Chance))/15):(1-((DATA.Paradigm.Phasis2.Viewing_number - 1)*max(DATA.Paradigm.Phasis2.Facility_levels)) - 0.01);
-DATA.Paradigm.Phasis2.Accuracies_levels = (round(DATA.Paradigm.Phasis2.Accuracies_levels*100))/100;
-DATA.Paradigm.Phasis2.Accuracies_levels = [DATA.Paradigm.Phasis2.Accuracies_levels(1), DATA.Paradigm.Phasis2.Accuracies_levels(round(median(1:length(DATA.Paradigm.Phasis2.Accuracies_levels)))), DATA.Paradigm.Phasis2.Accuracies_levels(length(DATA.Paradigm.Phasis2.Accuracies_levels))];
+% DATA.Paradigm.Phasis2.Accuracies_levels = DATA.Fit.Psychometric.Chance:(((1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels))-0.01)-(DATA.Fit.Psychometric.Chance))/15):(1-((DATA.Paradigm.Phasis2.Viewing_number - 1)*max(DATA.Paradigm.Phasis2.Facility_levels)) - 0.01);
+% DATA.Paradigm.Phasis2.Accuracies_levels = (round(DATA.Paradigm.Phasis2.Accuracies_levels*100))/100;
+% DATA.Paradigm.Phasis2.Accuracies_levels = [DATA.Paradigm.Phasis2.Accuracies_levels(1), DATA.Paradigm.Phasis2.Accuracies_levels(round(median(1:length(DATA.Paradigm.Phasis2.Accuracies_levels)))), DATA.Paradigm.Phasis2.Accuracies_levels(length(DATA.Paradigm.Phasis2.Accuracies_levels))];
+DATA.Paradigm.Phasis2.Accuracies_levels = [0.85, 0.75, 0.65];
 % Define the initial wanted performance (before increasing facility index) for the total number of trials
 DATA.Paradigm.Phasis2.Accuracies = repmat(DATA.Paradigm.Phasis2.Accuracies_levels, 1, size(DATA.Paradigm.Phasis2.Facility_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number);
 % Transform it into a column
 DATA.Paradigm.Phasis2.Accuracies = transpose(DATA.Paradigm.Phasis2.Accuracies);
 % Randomly shuffle it
 DATA.Paradigm.Phasis2.Accuracies = DATA.Paradigm.Phasis2.Accuracies(randperm(length(DATA.Paradigm.Phasis2.Accuracies)), 1);
-% Define all the increasing facility index (for each trial)
+% Define all the increasing facility indexes (for each trial)
 DATA.Paradigm.Phasis2.Facilities = repmat(DATA.Paradigm.Phasis2.Facility_levels, 1, size(DATA.Paradigm.Phasis2.Accuracies_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number);
 % Transform it into a column
 DATA.Paradigm.Phasis2.Facilities = transpose(DATA.Paradigm.Phasis2.Facilities);
@@ -292,7 +295,7 @@ DATA.Paradigm.Phasis2.Trials = size(DATA.Paradigm.Phasis2.Performances, 1);
 
 % For phasis 3 (information seeking phasis)
 % Define the number of trials per accuracy level
-DATA.Paradigm.Phasis3.Accuracies_number = 10;
+DATA.Paradigm.Phasis3.Accuracies_number = 12;
 % If we are in the test context, display only one trial per accuracy level
 if (DATA.Subject.Context == 3)
     DATA.Paradigm.Phasis3.Accuracies_number = 1;
@@ -324,7 +327,7 @@ end
 
 % Define gains modalities (left column for wrong answers and right column for correct answers)
 DATA.Points.Initial = 5000; % Define the initial gain
-DATA.Points.Matrix.Phasis1 = [-25, 25]; % Define the gain matrix for phasis 1
+DATA.Points.Matrix.Phasis1 = [-50, 50]; % Define the gain matrix for phasis 1
 DATA.Points.Matrix.Phasis2 = [-80, 80]; % Define the gain matrix for phasis 2
 DATA.Points.Matrix.Phasis3 = [-190, 130; -110, 110; -90, 90; -70, 70; -50, 50]; % Define the gain matrix for phasis 3
 DATA.Points.Matrix.Confidence = [-110, 50]; % Define the gain matrix for condidence steps
@@ -384,15 +387,19 @@ try
             if (DATA.Subject.Optimization == 1)
                     % If it is the first trial
                     if (Trial_number == 1)
-                        % Initialize the design optimization
-                        DATA.Fit.Psychometric.Init = OptimDesign('initialize', DATA.Fit.Psychometric.Function, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.Estimated_variance, DATA.Fit.Psychometric.Grid);
                         % And set some variables
                         DATA.Fit.Psychometric.Efficiency = zeros(DATA.Paradigm.Phasis1.Trials, 1);
                         DATA.Fit.Psychometric.Input_coherences = DATA.Fit.Psychometric.Forced_coherences;
                         DATA.Fit.Psychometric.Input_correction = DATA.Fit.Psychometric.Forced_correction;
+                        % Initialize the design optimization
+                        DATA.Fit.Psychometric.Init = OptimDesign('initialize', DATA.Fit.Psychometric.Function, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.Estimated_variance, DATA.Fit.Psychometric.Grid);
+                        % Register constraints
+                        for Constraint_number = 1:size(DATA.Fit.Psychometric.Input_coherences, 2)
+                            OptimDesign('register', DATA.Fit.Psychometric.Input_correction(Constraint_number), DATA.Fit.Psychometric.Input_coherences(Constraint_number), Constraint_number);
+                        end
                     elseif (any(DATA.Fit.Psychometric.Reinitialization_list == Trial_number) == 1)
                         % Save the results from the previous optimization protocol
-                        [DATA.Fit.Psychometric.MuPhi(end + 1), DATA.Fit.Psychometric.SigmaPhi(end + 1)] = OptimDesign('results');
+                        DATA.Fit.Psychometric.MuPhi(end + 1, :) = DATA.Fit.Psychometric.Parameters(end, :);
                         % Reset some variables
                         Optimization_number = Optimization_number + 1;
                         Screening_number = 1;
@@ -400,6 +407,10 @@ try
                         DATA.Fit.Psychometric.Input_correction = DATA.Fit.Psychometric.Forced_correction;
                         % Initialize the next optimization protocol
                         DATA.Fit.Psychometric.Init = OptimDesign('initialize', DATA.Fit.Psychometric.Function, DATA.Fit.Psychometric.Estimated, DATA.Fit.Psychometric.Estimated_variance, DATA.Fit.Psychometric.Grid);
+                        % Register constraints
+                        for Constraint_number = 1:size(DATA.Fit.Psychometric.Input_coherences, 2)
+                            OptimDesign('register', DATA.Fit.Psychometric.Input_correction(Constraint_number), DATA.Fit.Psychometric.Input_coherences(Constraint_number), Constraint_number);
+                        end
                     end
                     
                     % In the first part, get the coherence level from the screening table
@@ -409,17 +420,17 @@ try
                     % Then, find the most informative coherence level
                     elseif (Screening_number > DATA.Paradigm.Fit.Psychometric.Screening_trials_per_optimization)
                         % Get the coherence level from the optimization protocol
-                        [DATA.Paradigm.Phasis1.Coherences(Trial_number), DATA.Fit.Psychometric.Efficiency(Trial_number)] = OptimDesign('nexttrial');
-                        DATA.Fit.Psychometric.Input_coherences(end + 1) = DATA.Paradigm.Phasis1.Coherences(Trial_number);
+                        [DATA.Paradigm.Phasis1.Coherences(Trial_number, 1), DATA.Fit.Psychometric.Efficiency(Trial_number, 1)] = OptimDesign('nexttrial');
+                        DATA.Fit.Psychometric.Input_coherences(end + 1) = DATA.Paradigm.Phasis1.Coherences(Trial_number, 1);
                     end
             end
-            dots.coherence = DATA.Paradigm.Phasis1.Coherences(Trial_number);
+            dots.coherence = DATA.Paradigm.Phasis1.Coherences(Trial_number, 1);
 
         % For phasis 2
         elseif (Phasis_number == 2)
             % Get a coherence level according to a given performance
             DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = ...
-                solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 1), DATA.Fit.Psychometric.Chance);
+                round(solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 1), DATA.Fit.Psychometric.Chance)*100)/100;
             if (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) > 1)
                 DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = 1;
             elseif (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) < 0.01)
@@ -431,7 +442,7 @@ try
         elseif (Phasis_number == 3)
             % Get a coherence level according to a given performance
             DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = ...
-                solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1), DATA.Fit.Psychometric.Chance);
+                round(solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1), DATA.Fit.Psychometric.Chance)*100)/100;
             if (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) > 1)
                 DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) = 1;
             elseif (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1) < 0.01)
@@ -461,11 +472,11 @@ try
         for Review = 2:1:DATA.Paradigm.Phasis2.Viewing_number
 
             % If we have to display a second sample of stimulus
-            if (Phasis_number == 2) && (isnan(DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 2)) == 0)
+            if (Phasis_number == 2) && ((DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 2) == -1) == 0)
 
                 % Get again a coherence level according to a given performance
                 DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = ...
-                    solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 3), DATA.Fit.Psychometric.Chance);
+                    round(solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 3), DATA.Fit.Psychometric.Chance)*100)/100;
                 if (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) > 1)
                     DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = 1;
                 elseif (DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) < 0.01)
@@ -489,8 +500,8 @@ try
                 waitTill(0.2);
 
             % If we did not have to display a second sample of stimulus, update the coherences lists
-            elseif (Phasis_number == 2) && (isnan(DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 2)) == 1)
-                DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 2) = NaN;
+            elseif (Phasis_number == 2) && ((DATA.Paradigm.Phasis2.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials, 2) == -1) == 1)
+                DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 2) = -1;
                 DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 3) = DATA.Paradigm.Phasis2.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials, 1);
             end
         end
@@ -536,7 +547,7 @@ try
                             DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) = -1;
                             DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 1);
 
-                            % If the subject has choosen to see a new stimulus sample
+                        % If the subject has choosen to see a new stimulus sample
                         elseif (display.control == 2 || 3 || 4 || 5)
                             % Update the targetted performance level lists
                             DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 2) = DATA.Paradigm.Phasis2.Facility_levels(display.control);
@@ -570,7 +581,7 @@ try
 
                 % Get a coherence level according to the performance we have to reach given the easiness increasing the subject chose                
                 DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = ...
-                    solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3), DATA.Fit.Psychometric.Chance);
+                    round(solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), DATA.Paradigm.Phasis3.Performances(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3), DATA.Fit.Psychometric.Chance)*100)/100;
                 if (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) > 1)
                     DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) = 1;
                 elseif (DATA.Paradigm.Phasis3.Coherences(Trial_number - DATA.Paradigm.Phasis1.Trials - DATA.Paradigm.Phasis2.Trials, 3) < 0.01)
@@ -639,6 +650,15 @@ try
                             DATA.Answers.RT1brut(Trial_number, 1) = (timeSecs - startTime)*1000;
                             % Save the subject answer
                             DATA.Answers.Direction(Trial_number, 1) = display.table(1, display.index);
+                            % For 2AFC design
+                            if (DATA.Subject.Design == 1)
+                                % Update the cursor according to key press
+                                drawT1Binary(display, Phasis_number, DATA.Points.Matrix.Phasis1, DATA.Points.Matrix.Phasis2, DATA.Points.Matrix.Phasis3);
+                            % For "clock" design
+                            elseif (DATA.Subject.Design == 2)
+                                % Update the arrow according to key press
+                                drawT1Clock(display, DATA.Paradigm.Step, Phasis_number, DATA.Points.Matrix.Phasis1, DATA.Points.Matrix.Phasis2, DATA.Points.Matrix.Phasis3);
+                            end
                             waitTill(0.2);
                             break;
                         end
@@ -664,6 +684,15 @@ try
                             DATA.Answers.RT1brut(Trial_number, 1) = (timeSecs - startTime)*1000;
                             % Save the subject answer
                             DATA.Answers.Direction(Trial_number, 1) = display.table(1, display.index);
+                            % For 2AFC design
+                            if (DATA.Subject.Design == 1)
+                                % Update the cursor according to key press
+                                drawT1Binary(display, Phasis_number, DATA.Points.Matrix.Phasis1, DATA.Points.Matrix.Phasis2, DATA.Points.Matrix.Phasis3);
+                            % For "clock" design
+                            elseif (DATA.Subject.Design == 2)
+                                % Update the arrow according to key press
+                                drawT1Clock(display, DATA.Paradigm.Step, Phasis_number, DATA.Points.Matrix.Phasis1, DATA.Points.Matrix.Phasis2, DATA.Points.Matrix.Phasis3);
+                            end
                             waitTill(0.2);
                             break;
                         end
@@ -828,8 +857,8 @@ try
 
             % Get the amount of "confidence" gains
 
-            % Get a first ticket (between 40 and 100)
-            DATA.Points.Tickets.First(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = randi([40, 100]);
+            % Get a first ticket (between 1 and 100)
+            DATA.Points.Tickets.First(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = randi([1, 100]);
             % Get a second ticket (between 1 and 100)
             DATA.Points.Tickets.Second(Trial_number - DATA.Paradigm.Phasis1.Trials, 1) = randi([1, 100]);
             % If confidence is bigger than the first random ticket
@@ -897,15 +926,14 @@ try
                     % Define some default psychometric parameters
                     DATA.Fit.Psychometric.SigFit(1) = 10;
                     DATA.Fit.Psychometric.SigFit(2) = 0.5;
-                    DATA.Fit.Psychometric.SigFit = nlinfit(DATA.Fit.Psychometric.Coherence, DATA.Fit.Psychometric.Performance, DATA.Fit.Psychometric.SigFunc, [1, 1]);%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 end
                 
             % If the bayesian optimization is activate
             elseif (DATA.Subject.Optimization == 1)
                 % Get the psychometric parameters
-                [DATA.Fit.Psychometric.MuPhi(end + 1), DATA.Fit.Psychometric.SigmaPhi(end + 1)] = OptimDesign('results');
+                DATA.Fit.Psychometric.MuPhi(end + 1, :) = DATA.Fit.Psychometric.Parameters(end, :);
                 DATA.Fit.Psychometric.SigFit(1) = exp(median(DATA.Fit.Psychometric.MuPhi(:, 1)));
-                DATA.Fit.Psychometric.SigFit(2) = median(DATA.Fit.Psychometric.MuPhi(:, 2));
+                DATA.Fit.Psychometric.SigFit(2) = DATA.Fit.Psychometric.MuPhi(find(median(DATA.Fit.Psychometric.MuPhi(:, 1)) == DATA.Fit.Psychometric.MuPhi), 2);
             end
 
             % Define the plot
@@ -913,12 +941,9 @@ try
             % Plot empirical points
             plot(DATA.Fit.Psychometric.Coherence, DATA.Fit.Psychometric.Performance, '*');
             hold on
-            % Plot the sigmoid function
-            plot(DATA.Fit.Psychometric.Coherence, DATA.Fit.Psychometric.SigFunc(DATA.Fit.Psychometric.SigFit, DATA.Fit.Psychometric.Coherence), 'g');
-            hold on
             % Draw theoretic curve based on fit
             DATA.Fit.Psychometric.Theoretical_x = 0:0.001:1;
-            DATA.Fit.Psychometric.Theoretical_y = sigmf(DATA.Fit.Psychometric.Theoretical_x, DATA.Fit.Psychometric.SigFit);
+            DATA.Fit.Psychometric.Theoretical_y = sigmf(DATA.Fit.Psychometric.Theoretical_x, DATA.Fit.Psychometric.SigFit, DATA.Fit.Psychometric.Chance);
             plot(DATA.Fit.Psychometric.Theoretical_x, DATA.Fit.Psychometric.Theoretical_y, 'r-.');
             hold on
             % Draw chance level
@@ -927,13 +952,13 @@ try
             text(0.8, 0.2, strcat('Beta = ', num2str((round(DATA.Fit.Psychometric.SigFit(1)*100)/100))));
             text(0.8, 0.1, strcat('Theta = ', num2str((round(DATA.Fit.Psychometric.SigFit(2)*100)/100))));
             % Set legend, axis and labels
-            legend('Human data', 'Fit', 'Model data', 'Chance', 'location', 'northeast');
+            legend('Human data', 'Fit', 'Chance', 'location', 'northeast');
             axis([0, 1, 0, 1]);
             xlabel('Motion coherence'); 
             ylabel('Perceptual performance');
 
             % Get a coherence level according to a given performance
-            DATA.Fit.Psychometric.C50 = solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), 0.5, DATA.Fit.Psychometric.Chance);
+            DATA.Fit.Psychometric.C50 = round(solveSig(DATA.Fit.Psychometric.SigFit(1), DATA.Fit.Psychometric.SigFit(2), 0.5, DATA.Fit.Psychometric.Chance)*100)/100;
         end
 
         %% Display some variables in the command window during
@@ -995,8 +1020,6 @@ try
         
         % allow to go through all the screening window
         Screening_number = Screening_number + 1;
-        
-    % save(DATA.Files.Name, 'DATA'); % à SUPPRIMER
     
     end
     
@@ -1016,17 +1039,7 @@ try
 
     % Convert points in money
     DATA.Points.Total = (DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II));
-    DATA.Points.Money = (DATA.Points.Total/DATA.Points.Maximum)*20;
-
-%     % If the points sum is negative
-%     if (((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000) <= 0)
-%         % Reset it at its initial level
-%         DATA.Points.Money = round(DATA.Points.Initial/1000);
-%     % If the points sum is negative
-%     elseif (((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000) > 0)
-%         % Convert it in money
-%         DATA.Points.Money = round((DATA.Points.Initial + sum(DATA.Points.Counter.Type_I) + sum(DATA.Points.Counter.Type_II))/1000);
-%     end
+    DATA.Points.Money = round((DATA.Points.Total/DATA.Points.Maximum)*20);
 
     % Born the amount of money a subject can win
     if (DATA.Points.Money < 5) % 5 euros minimum
@@ -1037,7 +1050,7 @@ try
 
     % Display end screen
     if (DATA.Subject.Context == 2)
-        drawText_MxM(display, [0, -(display.scale/5)], strcat('Merci d''avoir participé. Vous avez gagné  ', num2str(DATA.Points.Money), ' euros.'), colors.white, display.scale*4);
+        drawText_MxM(display, [0, -(display.scale/5)], strcat('Vous avez gagné:', num2str(DATA.Points.Money), 'euros. Merci d''avoir participé.'), colors.white, display.scale*4);
         drawText_MxM(display, [0, (display.scale/5)], 'Vous pouvez maintenant venir chercher vos gains en salle de contrôle.', colors.white, display.scale*4);
         Screen('Flip', display.windowPtr);
     end
@@ -1136,9 +1149,9 @@ try
         Rtable{i+1,16} = NaN; % Increasing coherences
         Rtable{i+1,17} = NaN; % Performances 'B'
         Rtable{i+1,18} = NaN; % Coherences 'B'
-        Rtable{i+1,24} = DATA.Answers.Confidence(i); % Type II (monitoring) answers
-        Rtable{i+1,25} = DATA.Answers.RT2brut(i); % Type II (monitoring) RT (brut)
-        Rtable{i+1,26} = DATA.Answers.RT2corr(i); % Type II (monitoring) RT (corrected)
+        Rtable{i+1,24} = NaN; % Type II (monitoring) answers
+        Rtable{i+1,25} = NaN; % Type II (monitoring) RT (brut)
+        Rtable{i+1,26} = NaN; % Type II (monitoring) RT (corrected)
         Rtable{i+1,27} = NaN; % Type II (control) answers
         Rtable{i+1,28} = NaN; % Type II (control) RT (brut)
         Rtable{i+1,29} = NaN; % Type II (control) RT (corrected)

@@ -31,9 +31,10 @@ x = x(:)';
 th = Phi(2);
 beta = param.beta.*exp(Phi(1));
 
+beta_max = param.G0/.01;
+
 %beta_min = atan((param.S0+1)/(2*th));
 %beta = param.beta.*beta_min + beta;
-beta_max = param.G0/.01;
 %beta = (sigm(beta)-.5)*2*beta_max;
 %beta = min(beta,beta_max);
 
