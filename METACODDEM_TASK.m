@@ -157,7 +157,7 @@ DATA.Fit.Psychometric.Chance = 1/length(display.table);
 % Define dot parameters
 dots.nDots = round(1.5*(2*pi*((display.scale/2)^2))); % Compute the number of dots based on the aperture size
 dots.speed = 5;
-dots.lifetime = 40; % miliseconds
+dots.lifetime = 30; % miliseconds
 dots.apertureSize = [display.scale, display.scale];
 dots.center = [0, 0];
 dots.color = colors.white;
@@ -267,7 +267,7 @@ end
 % DATA.Paradigm.Phasis2.Accuracies_levels = DATA.Fit.Psychometric.Chance:(((1-((DATA.Paradigm.Phasis2.Viewing_number-1)*max(DATA.Paradigm.Phasis2.Facility_levels))-0.01)-(DATA.Fit.Psychometric.Chance))/15):(1-((DATA.Paradigm.Phasis2.Viewing_number - 1)*max(DATA.Paradigm.Phasis2.Facility_levels)) - 0.01);
 % DATA.Paradigm.Phasis2.Accuracies_levels = (round(DATA.Paradigm.Phasis2.Accuracies_levels*100))/100;
 % DATA.Paradigm.Phasis2.Accuracies_levels = [DATA.Paradigm.Phasis2.Accuracies_levels(1), DATA.Paradigm.Phasis2.Accuracies_levels(round(median(1:length(DATA.Paradigm.Phasis2.Accuracies_levels)))), DATA.Paradigm.Phasis2.Accuracies_levels(length(DATA.Paradigm.Phasis2.Accuracies_levels))];
-DATA.Paradigm.Phasis2.Accuracies_levels = [0.85, 0.75, 0.65];
+DATA.Paradigm.Phasis2.Accuracies_levels = [0.65, 0.75, 0.85];
 % Define the initial wanted performance (before increasing facility index) for the total number of trials
 DATA.Paradigm.Phasis2.Accuracies = repmat(DATA.Paradigm.Phasis2.Accuracies_levels, 1, size(DATA.Paradigm.Phasis2.Facility_levels, 2)*DATA.Paradigm.Phasis2.Accuracies_number);
 % Transform it into a column
@@ -462,6 +462,9 @@ try
         end
 
         % Show the stimulus
+        if (isnan(dots.coherence) == 1)
+            dots.coherence = 0.5;
+        end
         movingDots_MxM(display, dots, dots.duration, DATA.Paradigm.Step, DATA.Subject.Design);
 
         % Black screen during 200 miliseconds
@@ -493,6 +496,9 @@ try
                 waitTill(1);
 
                 % Show the stimulus
+                if (isnan(dots.coherence) == 1)
+                    dots.coherence = 0.5;
+                end
                 movingDots_MxM(display, dots, dots.duration, DATA.Paradigm.Step, DATA.Subject.Design);
 
                 % Black screen during 200 miliseconds
@@ -598,6 +604,9 @@ try
                 waitTill(1);
 
                 % Show the stimulus
+                if (isnan(dots.coherence) == 1)
+                    dots.coherence = 0.5;
+                end
                 movingDots_MxM(display, dots, dots.duration, DATA.Paradigm.Step, DATA.Subject.Design);
             end
 
@@ -933,7 +942,7 @@ try
                 % Get the psychometric parameters
                 DATA.Fit.Psychometric.MuPhi(end + 1, :) = DATA.Fit.Psychometric.Parameters(end, :);
                 DATA.Fit.Psychometric.SigFit(1) = exp(median(DATA.Fit.Psychometric.MuPhi(:, 1)));
-                DATA.Fit.Psychometric.SigFit(2) = DATA.Fit.Psychometric.MuPhi(find(median(DATA.Fit.Psychometric.MuPhi(:, 1)) == DATA.Fit.Psychometric.MuPhi), 2);
+                DATA.Fit.Psychometric.SigFit(2) = unique(DATA.Fit.Psychometric.MuPhi(find(median(DATA.Fit.Psychometric.MuPhi(:, 1)) == DATA.Fit.Psychometric.MuPhi), 2));
             end
 
             % Define the plot

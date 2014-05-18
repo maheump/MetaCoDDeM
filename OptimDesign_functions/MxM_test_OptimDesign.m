@@ -87,7 +87,7 @@ for Forced_level = 1:size(Forced_levels, 2)
     for Forced_trial = 1:round(Forced_trials*(1 - Forced_performance(Forced_level)))
         DATA.Answers.Correction(end + 1, :) = 0;
     end
-end % vérifier dans le script de la tâche comment les cohérences et les réponses sont enregistrées (colonnes ou lignes)
+end
 
 % Forced_table = double(grpstats(set(mat2dataset([transpose(DATA.Paradigm.Phasis1.Coherences),(DATA.Answers.Correction)]), ...
 %     'VarNames', {'Coherence','Correction'}), 'Coherence'));
