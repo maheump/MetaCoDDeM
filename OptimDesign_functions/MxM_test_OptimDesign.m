@@ -1,14 +1,14 @@
 %%%% Test VBA on METACODDEM (with chance level) %%%%
 
-cd ..
-% Add functions folders to Matlab path
-addpath('Draw_functions');
-addpath('OptimDesign_functions');
-addpath('PTB_functions');
-addpath('VBA');
-addpath('VBA\subfunctions');
-addpath('VBA\stats&plots');
-addpath('VBA\classification');
+% cd ..
+% % Add functions folders to Matlab path
+% addpath('Draw_functions');
+% addpath('OptimDesign_functions');
+% addpath('PTB_functions');
+% addpath('VBA');
+% addpath('VBA\subfunctions');
+% addpath('VBA\stats&plots');
+% addpath('VBA\classification');
 
 clearvars -except Loop Loops Fit_quality; close all; clc
 

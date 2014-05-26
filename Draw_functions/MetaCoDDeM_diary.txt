@@ -1,0 +1,3 @@
+PTB-INFO: Connection to Psychtoolbox kernel support driver instance #0 (Revision 0) established.
+PTB-INFO: Disconnecting from kernel driver instance #0 for detected Intel GPU for safety reasons. setenv('PSYCH_ALLOW_DANGEROUS', '1') to override.
+PTB-INFO: Running on OSX 10.9+ - Enabling protection against AppNap and other evils.

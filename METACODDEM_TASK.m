@@ -26,7 +26,7 @@ clc;
 clear all;
 
 % Define in which context the task will be displayed (1: Individual testing, 2: LEEP testing, 3: Script test)
-DATA.Subject.Context = 2;
+DATA.Subject.Context = 3;
 
 % Add functions folders to Matlab path
 addpath('Draw_functions');
