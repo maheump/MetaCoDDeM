@@ -1,5 +1,11 @@
-/_gsdata_
-OptimDesign_functions/Fit.mat
-OptimDesign_functions/sigmoid_binomial_16AFC.m
-OptimDesign_functions/.DS_Store
+# Temporary Matlab files
 *.m~
+.m~
+*.asv
+.asv
+
+# Sync software files
+/_gsdata_
+*.DS_Store
+*._gs
+*.gsl
