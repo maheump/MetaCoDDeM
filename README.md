@@ -1,4 +1,4 @@
-MetaCoDDeM_project
+MetaCoDDeM
 ================
 
 Behavioral and computational drivers of metacognitive control during multi-sampling decision-making (role of decisional variables and uncertainty monitoring on proactive information seeking).
